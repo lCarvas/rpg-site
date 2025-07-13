@@ -1,4 +1,3 @@
-import type { ChangeEvent } from "react"
 import {
 	ChevronLeft,
 	ChevronRight,
@@ -10,9 +9,11 @@ interface StatBarProps {
 	label: string
 	barColor: string
 	currentStatValue: number
+	currentStatValueInput: string
 	maxStatValue: number
-	onChangeCurrent: (e: ChangeEvent<HTMLInputElement>) => void
-	onChangeMax: (e: ChangeEvent<HTMLInputElement>) => void
+	maxStatValueInput: string
+	onChange: (value: string, current: boolean) => void
+	onBlur: (value: number, current: boolean) => void
 	onClick: (value: number) => void
 }
 
@@ -20,14 +21,16 @@ export function StatBar({
 	label,
 	barColor,
 	currentStatValue,
+	currentStatValueInput,
 	maxStatValue,
-	onChangeCurrent,
-	onChangeMax,
+	maxStatValueInput,
+	onChange,
 	onClick,
+	onBlur,
 }: StatBarProps) {
 	return (
 		<div className="stat-bar mr-4 ml-8">
-			<div className="text-center font-bold text-sm">{label}</div>
+			<div className="text-center font-bold text-sm text-white/60">{label}</div>
 			<div className="relative h-10 border-1 border-zinc-600">
 				<div
 					className={`${barColor} absolute h-[100%] transition-all duration-500 ease-in-out`}
@@ -56,21 +59,21 @@ export function StatBar({
 						<input
 							className="w-[50px] text-end text-base"
 							onBlur={(e) => {
-								e.target.value = e.target.value.replace(/^0+(?=\d)/, "")
+								onBlur(Number(e.target.value), true)
 							}}
-							onChange={onChangeCurrent}
+							onChange={(e) => onChange(e.target.value, true)}
 							type="number"
-							value={currentStatValue}
+							value={currentStatValueInput}
 						/>{" "}
 						<span className="text-base">/</span>{" "}
 						<input
 							className="w-[50px] text-start text-base"
 							onBlur={(e) => {
-								e.target.value = e.target.value.replace(/^0+(?=\d)/, "")
+								onBlur(Number(e.target.value), false)
 							}}
-							onChange={onChangeMax}
+							onChange={(e) => onChange(e.target.value, false)}
 							type="number"
-							value={maxStatValue}
+							value={maxStatValueInput}
 						/>
 					</div>
 					<div className="bar-buttons flex items-center">
