@@ -3,56 +3,22 @@
 import Image from "next/image"
 import minusIcon from "public/icons/circle-minus-solid.svg"
 import plusIcon from "public/icons/circle-plus-solid.svg"
-import { useEffect, useRef, useState } from "react"
+import { useState } from "react"
 import { Toaster, toast } from "sonner"
 import { RollSkillButton } from "@/components/dice-component"
 import { StatBar } from "@/components/statBar"
-import { classes, type classesObjectTypes } from "@/data/classes"
 import { skills } from "@/data/skills"
 import { rollDice, rollDiceNotation } from "@/utils/dice"
 
-interface statObjectTypes {
+export interface globalStatTypes {
 	str: number
 	agi: number
 	int: number
 	vig: number
 	pre: number
 	nex: number
-	currentHp: number
-	maxHp: number
-	currentSan: number
-	maxSan: number
-	currentPe: number
-	maxPe: number
-	currentPd: number
-	maxPd: number
-	equipDef: number
-	otherDef: number
-	dodge: number
-	blockDr: number
 	class: string
 	background: string
-}
-
-interface statObjectTempInputTypes {
-	str: string
-	agi: string
-	int: string
-	vig: string
-	pre: string
-	nex: string
-	currentHp: string
-	maxHp: string
-	currentSan: string
-	maxSan: string
-	currentPe: string
-	maxPe: string
-	currentPd: string
-	maxPd: string
-	equipDef: string
-	otherDef: string
-	dodge: string
-	blockDr: string
 }
 
 interface skillObjectTypes {
@@ -229,50 +195,23 @@ const nexNumberToPercentage: { [key: number]: string } = {
 }
 
 export default function Characters() {
-	const [statValues, setStatValue] = useState<statObjectTypes>({
+	const [globalStats, setGlobalStats] = useState<globalStatTypes>({
 		str: 1,
 		agi: 1,
 		int: 1,
 		vig: 1,
 		pre: 1,
 		nex: 1,
-		currentHp: 0,
-		maxHp: 0,
-		currentSan: 0,
-		maxSan: 0,
-		currentPe: 0,
-		maxPe: 0,
-		currentPd: 0,
-		maxPd: 0,
-		equipDef: 0,
-		otherDef: 0,
-		dodge: 0,
-		blockDr: 0,
 		class: "combatant",
 		background: "",
 	})
 
-	const [rawStatInputValues, setRawStatInputValue] =
-		useState<statObjectTempInputTypes>({
-			str: "1",
-			agi: "1",
-			int: "1",
-			vig: "1",
-			pre: "1",
-			nex: "1",
-			currentHp: "0",
-			maxHp: "0",
-			currentSan: "0",
-			maxSan: "0",
-			currentPe: "0",
-			maxPe: "0",
-			currentPd: "0",
-			maxPd: "0",
-			equipDef: "0",
-			otherDef: "0",
-			dodge: "0",
-			blockDr: "0",
-		})
+	const [defensiveStats, setDefensiveValues] = useState({
+		equipDef: "0",
+		otherDef: "0",
+		dodge: "0",
+		blockDr: "0",
+	})
 
 	const [skillAttributes, setSkillAttributes] = useState<skillObjectTypes>({
 		Acrobatics: { attribute: "AGI", training: 0, otherBonus: 0 },
@@ -313,199 +252,8 @@ export default function Characters() {
 		Will: { attribute: "PRE", training: 0, otherBonus: 0 },
 	})
 
-	const prevNexRef = useRef(statValues.nex)
-
-	useEffect(() => {
-		const classAsKey = statValues.class as keyof classesObjectTypes
-		const prevNexValue = prevNexRef.current
-		setStatValue((prevState) => ({
-			...prevState,
-			maxHp:
-				classes[classAsKey].initialPv +
-				statValues.vig +
-				(statValues.nex - 1) * (statValues.vig + classes[classAsKey].levelPv),
-			currentHp: Math.max(
-				0,
-				prevState.currentHp +
-					(statValues.nex - prevNexValue) *
-						(statValues.vig + classes[classAsKey].levelPv),
-			),
-			maxSan:
-				classes[classAsKey].initialSan +
-				(statValues.nex - 1) * classes[classAsKey].levelSan,
-			currentSan: Math.max(
-				0,
-				prevState.currentSan +
-					(statValues.nex - prevNexValue) * classes[classAsKey].levelSan,
-			),
-			maxPe:
-				classes[classAsKey].initialPe +
-				statValues.pre +
-				(statValues.nex - 1) * (statValues.pre + classes[classAsKey].levelPe),
-			currentPe: Math.max(
-				0,
-				prevState.currentPe +
-					(statValues.nex - prevNexValue) *
-						(statValues.pre + classes[classAsKey].levelPe),
-			),
-			maxPd:
-				classes[classAsKey].initialPd +
-				statValues.pre +
-				(statValues.nex - 1) * (statValues.pre + classes[classAsKey].levelPd),
-			currentPd: Math.max(
-				0,
-				prevState.currentPd +
-					(statValues.nex - prevNexValue) *
-						(statValues.pre + classes[classAsKey].levelPd),
-			),
-		}))
-		prevNexRef.current = statValues.nex
-	}, [statValues.vig, statValues.pre, statValues.nex, statValues.class])
-
-	useEffect(() => {
-		setRawStatInputValue((prev) => ({
-			...prev,
-			maxHp: statValues.maxHp.toString(),
-		}))
-	}, [statValues.maxHp])
-
-	useEffect(() => {
-		setRawStatInputValue((prev) => ({
-			...prev,
-			currentHp: statValues.currentHp.toString(),
-		}))
-	}, [statValues.currentHp])
-
-	useEffect(() => {
-		setRawStatInputValue((prev) => ({
-			...prev,
-			maxSan: statValues.maxSan.toString(),
-		}))
-	}, [statValues.maxSan])
-
-	useEffect(() => {
-		setRawStatInputValue((prev) => ({
-			...prev,
-			currentSan: statValues.currentSan.toString(),
-		}))
-	}, [statValues.currentSan])
-
-	useEffect(() => {
-		setRawStatInputValue((prev) => ({
-			...prev,
-			maxPe: statValues.maxPe.toString(),
-		}))
-	}, [statValues.maxPe])
-
-	useEffect(() => {
-		setRawStatInputValue((prev) => ({
-			...prev,
-			currentPe: statValues.currentPe.toString(),
-		}))
-	}, [statValues.currentPe])
-
-	useEffect(() => {
-		setRawStatInputValue((prev) => ({
-			...prev,
-			maxPd: statValues.maxPd.toString(),
-		}))
-	}, [statValues.maxPd])
-
-	useEffect(() => {
-		setRawStatInputValue((prev) => ({
-			...prev,
-			currentPd: statValues.currentPd.toString(),
-		}))
-	}, [statValues.currentPd])
-
-	useEffect(() => {
-		setRawStatInputValue((prev) => ({
-			...prev,
-			equipDef: statValues.equipDef.toString(),
-		}))
-	}, [statValues.equipDef])
-
-	const prevReflexesRef = useRef(
-		skillAttributes.Reflexes.training + skillAttributes.Reflexes.otherBonus,
-	)
-
-	useEffect(() => {
-		const prevReflexesValue = prevReflexesRef.current
-		setStatValue((prev) => ({
-			...prev,
-			dodge:
-				prev.dodge +
-				(skillAttributes.Reflexes.training +
-					skillAttributes.Reflexes.otherBonus -
-					prevReflexesValue),
-		}))
-		prevReflexesRef.current =
-			skillAttributes.Reflexes.training + skillAttributes.Reflexes.otherBonus
-	}, [skillAttributes.Reflexes.training, skillAttributes.Reflexes.otherBonus])
-
-	useEffect(() => {
-		setRawStatInputValue((prev) => ({
-			...prev,
-			dodge: statValues.dodge.toString(),
-		}))
-	}, [statValues.dodge])
-
-	const prevFortitudeRef = useRef(
-		skillAttributes.Fortitude.training + skillAttributes.Fortitude.otherBonus,
-	)
-
-	useEffect(() => {
-		const prevFortitudeValue = prevFortitudeRef.current
-		setStatValue((prev) => ({
-			...prev,
-			blockDr:
-				prev.blockDr +
-				(skillAttributes.Fortitude.training +
-					skillAttributes.Fortitude.otherBonus -
-					prevFortitudeValue),
-		}))
-		prevFortitudeRef.current =
-			skillAttributes.Fortitude.training + skillAttributes.Fortitude.otherBonus
-	}, [skillAttributes.Fortitude.training, skillAttributes.Fortitude.otherBonus])
-
-	const updateBarValueOnBlur =
-		(statToChange: string) => (value: number, current: boolean) => {
-			if (
-				statValues[
-					`${current ? "current" : "max"}${statToChange}` as keyof statObjectTypes
-				] === 0
-			) {
-				setRawStatInputValue({
-					...rawStatInputValues,
-					[`${current ? "current" : "max"}${statToChange}`]: "0",
-				})
-			}
-			setStatValue({
-				...statValues,
-				[`${current ? "current" : "max"}${statToChange}`]: Math.max(0, value),
-			})
-		}
-
-	const updateBarValueOnChange =
-		(statToChange: string) => (value: string, current: boolean) =>
-			setRawStatInputValue({
-				...rawStatInputValues,
-				[`${current ? "current" : "max"}${statToChange}`]: value,
-			})
-
-	const updateBarValueClick = (statToChange: string) => (value: number) => {
-		setStatValue({
-			...statValues,
-			[`current${statToChange}`]: Math.max(
-				0,
-				(statValues[
-					`current${statToChange}` as keyof statObjectTypes
-				] as number) + value,
-			),
-		})
-	}
-	const defenseValue: number =
-		10 + statValues.agi + statValues.equipDef + statValues.otherDef
+	// const defenseValue: number =
+	// 	10 + globalStats.agi + globalStats.equipDef + globalStats.otherDef
 
 	return (
 		<div className="mx-auto min-h-[90vh] max-w-[1280px]">
@@ -515,9 +263,9 @@ export default function Characters() {
 					<button
 						className="hover:cursor-pointer"
 						onClick={() => {
-							setStatValue({
-								...statValues,
-								str: statValues.str - 1,
+							setGlobalStats({
+								...globalStats,
+								str: globalStats.str - 1,
 							})
 						}}
 						type="button"
@@ -533,18 +281,18 @@ export default function Characters() {
 					<RollSkillButton
 						onClick={() => {
 							toast("Strength", {
-								description: `${rollDice(statValues.str)}`,
+								description: `${rollDice(globalStats.str)}`,
 							})
 						}}
 					>
-						<span className="p-2 font-bold">Strength: {statValues.str}</span>
+						<span className="p-2 font-bold">Strength: {globalStats.str}</span>
 					</RollSkillButton>
 					<button
 						className="hover:cursor-pointer"
 						onClick={() => {
-							setStatValue({
-								...statValues,
-								str: statValues.str + 1,
+							setGlobalStats({
+								...globalStats,
+								str: globalStats.str + 1,
 							})
 						}}
 						type="button"
@@ -561,9 +309,9 @@ export default function Characters() {
 						<button
 							className="hover:cursor-pointer"
 							onClick={() => {
-								setStatValue({
-									...statValues,
-									agi: statValues.agi - 1,
+								setGlobalStats({
+									...globalStats,
+									agi: globalStats.agi - 1,
 								})
 							}}
 							type="button"
@@ -579,18 +327,18 @@ export default function Characters() {
 						<RollSkillButton
 							onClick={() => {
 								toast("Agility", {
-									description: `${rollDice(statValues.agi)}`,
+									description: `${rollDice(globalStats.agi)}`,
 								})
 							}}
 						>
-							<span className="p-2 font-bold">Agility: {statValues.agi}</span>
+							<span className="p-2 font-bold">Agility: {globalStats.agi}</span>
 						</RollSkillButton>
 						<button
 							className="hover:cursor-pointer"
 							onClick={() => {
-								setStatValue({
-									...statValues,
-									agi: statValues.agi + 1,
+								setGlobalStats({
+									...globalStats,
+									agi: globalStats.agi + 1,
 								})
 							}}
 							type="button"
@@ -608,9 +356,9 @@ export default function Characters() {
 						<button
 							className="hover:cursor-pointer"
 							onClick={() => {
-								setStatValue({
-									...statValues,
-									int: statValues.int - 1,
+								setGlobalStats({
+									...globalStats,
+									int: globalStats.int - 1,
 								})
 							}}
 							type="button"
@@ -626,18 +374,20 @@ export default function Characters() {
 						<RollSkillButton
 							onClick={() => {
 								toast("Intellect", {
-									description: `${rollDice(statValues.int)}`,
+									description: `${rollDice(globalStats.int)}`,
 								})
 							}}
 						>
-							<span className="p-2 font-bold">Intellect: {statValues.int}</span>
+							<span className="p-2 font-bold">
+								Intellect: {globalStats.int}
+							</span>
 						</RollSkillButton>
 						<button
 							className="hover:cursor-pointer"
 							onClick={() => {
-								setStatValue({
-									...statValues,
-									int: statValues.int + 1,
+								setGlobalStats({
+									...globalStats,
+									int: globalStats.int + 1,
 								})
 							}}
 							type="button"
@@ -655,9 +405,9 @@ export default function Characters() {
 						<button
 							className="hover:cursor-pointer"
 							onClick={() => {
-								setStatValue({
-									...statValues,
-									vig: statValues.vig - 1,
+								setGlobalStats({
+									...globalStats,
+									vig: globalStats.vig - 1,
 								})
 							}}
 							type="button"
@@ -673,18 +423,18 @@ export default function Characters() {
 						<RollSkillButton
 							onClick={() => {
 								toast("Vigor", {
-									description: `${rollDice(statValues.vig)}`,
+									description: `${rollDice(globalStats.vig)}`,
 								})
 							}}
 						>
-							<span className="p-2 font-bold">Vigor: {statValues.vig}</span>
+							<span className="p-2 font-bold">Vigor: {globalStats.vig}</span>
 						</RollSkillButton>
 						<button
 							className="hover:cursor-pointer"
 							onClick={() => {
-								setStatValue({
-									...statValues,
-									vig: statValues.vig + 1,
+								setGlobalStats({
+									...globalStats,
+									vig: globalStats.vig + 1,
 								})
 							}}
 							type="button"
@@ -702,9 +452,9 @@ export default function Characters() {
 						<button
 							className="hover:cursor-pointer"
 							onClick={() => {
-								setStatValue({
-									...statValues,
-									pre: statValues.pre - 1,
+								setGlobalStats({
+									...globalStats,
+									pre: globalStats.pre - 1,
 								})
 							}}
 							type="button"
@@ -720,18 +470,18 @@ export default function Characters() {
 						<RollSkillButton
 							onClick={() => {
 								toast("Presence", {
-									description: `${rollDice(statValues.pre)}`,
+									description: `${rollDice(globalStats.pre)}`,
 								})
 							}}
 						>
-							<span className="p-2 font-bold">Presence: {statValues.pre}</span>
+							<span className="p-2 font-bold">Presence: {globalStats.pre}</span>
 						</RollSkillButton>
 						<button
 							className="hover:cursor-pointer"
 							onClick={() => {
-								setStatValue({
-									...statValues,
-									pre: statValues.pre + 1,
+								setGlobalStats({
+									...globalStats,
+									pre: globalStats.pre + 1,
 								})
 							}}
 							type="button"
@@ -750,10 +500,10 @@ export default function Characters() {
 							Class:{" "}
 							<select
 								className="hover:cursor-pointer hover:text-purple-500"
-								defaultValue={statValues.class}
+								defaultValue={globalStats.class}
 								onChange={(e) => {
-									setStatValue({
-										...statValues,
+									setGlobalStats({
+										...globalStats,
 										class: e.target.value,
 									})
 								}}
@@ -767,10 +517,10 @@ export default function Characters() {
 							LPE:{" "}
 							<select
 								className="hover:cursor-pointer hover:text-purple-500"
-								defaultValue={statValues.nex}
+								defaultValue={globalStats.nex}
 								onChange={(e) =>
-									setStatValue({
-										...statValues,
+									setGlobalStats({
+										...globalStats,
 										nex: Number(e.target.value),
 									})
 								}
@@ -801,50 +551,30 @@ export default function Characters() {
 					<div className="statBars flex flex-col gap-3">
 						<StatBar
 							barColor="bg-red-500"
-							currentStatValue={statValues.currentHp}
-							currentStatValueInput={rawStatInputValues.currentHp}
+							globalStats={globalStats}
 							label="HEALTH"
-							maxStatValue={statValues.maxHp}
-							maxStatValueInput={rawStatInputValues.maxHp}
-							onBlur={updateBarValueOnBlur("Hp")}
-							onChange={updateBarValueOnChange("Hp")}
-							onClick={updateBarValueClick("Hp")}
+							stat="Hp"
 						/>
 						<StatBar
 							barColor="bg-blue-500"
-							currentStatValue={statValues.currentSan}
-							currentStatValueInput={rawStatInputValues.currentSan}
+							globalStats={globalStats}
 							label="SANITY"
-							maxStatValue={statValues.maxSan}
-							maxStatValueInput={rawStatInputValues.maxSan}
-							onBlur={updateBarValueOnBlur("San")}
-							onChange={updateBarValueOnChange("San")}
-							onClick={updateBarValueClick("San")}
+							stat="San"
 						/>
 						<StatBar
 							barColor="bg-yellow-600"
-							currentStatValue={statValues.currentPe}
-							currentStatValueInput={rawStatInputValues.currentPe}
+							globalStats={globalStats}
 							label="EFFORT"
-							maxStatValue={statValues.maxPe}
-							maxStatValueInput={rawStatInputValues.maxPe}
-							onBlur={updateBarValueOnBlur("Pe")}
-							onChange={updateBarValueOnChange("Pe")}
-							onClick={updateBarValueClick("Pe")}
+							stat="Pe"
 						/>
 						<StatBar
 							barColor="bg-sky-400"
-							currentStatValue={statValues.currentPd}
-							currentStatValueInput={rawStatInputValues.currentPd}
+							globalStats={globalStats}
 							label="DETERMINATION"
-							maxStatValue={statValues.maxPd}
-							maxStatValueInput={rawStatInputValues.maxPd}
-							onBlur={updateBarValueOnBlur("Pd")}
-							onChange={updateBarValueOnChange("Pd")}
-							onClick={updateBarValueClick("Pd")}
+							stat="Pd"
 						/>
 					</div>
-					<div className="roberto">
+					{/* <div className="roberto">
 						Defense: {defenseValue}
 						<p>
 							Equip:{" "}
@@ -852,14 +582,14 @@ export default function Characters() {
 								className="w-5 border-b-1 p-0 text-center"
 								inputMode="numeric"
 								onBlur={(e) => {
-									if (statValues.equipDef === 0) {
+									if (globalStats.equipDef === 0) {
 										setRawStatInputValue({
 											...rawStatInputValues,
 											equipDef: "0",
 										})
 									}
-									setStatValue({
-										...statValues,
+									setGlobalStats({
+										...globalStats,
 										equipDef: Math.max(0, Number(e.target.value)),
 									})
 								}}
@@ -877,12 +607,12 @@ export default function Characters() {
 							Other:{" "}
 							<input
 								className="w-5 border-b-1 p-0 text-center"
-								defaultValue={statValues.otherDef}
+								defaultValue={globalStats.otherDef}
 								inputMode="numeric"
 								onChange={(e) => {
 									const value = Number(e.target.value)
-									setStatValue({
-										...statValues,
+									setGlobalStats({
+										...globalStats,
 										otherDef: value,
 									})
 								}}
@@ -895,14 +625,14 @@ export default function Characters() {
 								className="w-5 border-b-1 text-center"
 								inputMode="numeric"
 								onBlur={(e) => {
-									if (statValues.dodge === 0) {
+									if (globalStats.dodge === 0) {
 										setRawStatInputValue({
 											...rawStatInputValues,
 											dodge: "0",
 										})
 									}
-									setStatValue({
-										...statValues,
+									setGlobalStats({
+										...globalStats,
 										dodge: Number(e.target.value),
 									})
 								}}
@@ -928,11 +658,8 @@ export default function Characters() {
 								type="number"
 							/>
 						</p>
-						<p>
-							test {statValues.currentHp} {rawStatInputValues.currentHp}{" "}
-							{statValues.equipDef}
-						</p>
-					</div>
+						<p>{globalStats.equipDef}</p>
+					</div> */}
 				</div>
 				<div>
 					<table className="table-fixed border-separate border-spacing-[3px]">
@@ -969,10 +696,10 @@ export default function Characters() {
 													onClick={() =>
 														toast(`${skill.name}`, {
 															description: `${rollDice(
-																statValues[
+																globalStats[
 																	skillAttributes[
 																		`${skillNameAsKey}`
-																	].attribute.toLowerCase() as keyof statObjectTypes
+																	].attribute.toLowerCase() as keyof globalStatTypes
 																] as number,
 																+skillBonus,
 															)}`,
