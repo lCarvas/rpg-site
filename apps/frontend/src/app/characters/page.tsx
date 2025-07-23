@@ -749,7 +749,7 @@ export default function Characters() {
 										</td>
 										<td className="text-center align-middle">
 											<select
-												className="w-9 border-b-1 text-center hover:cursor-pointer hover:text-purple-500"
+												className="w-9 border-white border-b-1 text-center hover:cursor-pointer hover:text-purple-500"
 												onChange={(e) => {
 													setSkillAttributes({
 														...skillAttributes,
@@ -778,7 +778,7 @@ export default function Characters() {
 										<td className="w-13 text-center">
 											<div className="flex items-center justify-center align-middle">
 												<input
-													className="w-9 border-b-1 text-center"
+													className="w-9 border-white border-b-1 text-center"
 													defaultValue="0"
 													inputMode="numeric"
 													onBlur={(e) => {
@@ -819,7 +819,7 @@ export default function Characters() {
 				</div>
 				<div className="w-125">
 					<input
-						className="border-b-2"
+						className="border-white border-b-2"
 						onKeyDown={(e) => {
 							if (e.key === "Enter") {
 								toast(`${rollDiceNotation(e.currentTarget.value)}`)
