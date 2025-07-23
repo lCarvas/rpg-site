@@ -20,4 +20,4 @@
   - [x] Skills
 
 - [ ] Replace select tags with something else for better stylization
-- [ ] Change changeStats function. When changing attributes it would need to get the nex value which it can't due to it not existing on the attribute part. Need to either make separate function or make it have a fallback value if no e.target.value
+- WRAP TD TEXT IN DIVS, LINE HEIGHT 1.6 ON THAT, LINE HEIGHT NORMAL ON THE INSIDE
