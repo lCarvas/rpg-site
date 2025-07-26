@@ -21,7 +21,10 @@
 		"baseUrl": ".",
 		"paths": {
 			"@/*": ["./src/*"],
-			"@auth": ["../backend/src/lib/auth.ts"]
+			"@auth": ["../backend/src/lib/auth.ts"],
+			"@libs": ["../../packages/libs/src/index.ts"],
+			"@api": ["../backend/src/index.ts"],
+			"@api/*": ["../backend/src/*"]
 		}
 	},
 	"include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],

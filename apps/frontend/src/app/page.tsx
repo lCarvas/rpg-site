@@ -1,6 +1,7 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
+import { getUsers } from "@/dal/dal"
 import { authClient } from "@/lib/auth-client"
 
 const signOut = async () => {
@@ -17,6 +18,7 @@ export default function Home() {
 	return (
 		<main>
 			<div>Hello world!</div>
+			{getUsers()}
 			<div className="">{session ? `hello ${session.user.name}` : ""}</div>
 			<div>
 				{session && (
