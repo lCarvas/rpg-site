@@ -1,21 +1,24 @@
 {
-  "name": "rpg-site-monorepo",
-  "module": "index.ts",
-  "type": "module",
-  "private": true,
-  "workspaces": ["apps/*"],
-  "devDependencies": {
-    "@biomejs/biome": "2.1.2",
-    "@types/bun": "latest"
-  },
-  "peerDependencies": {
-    "typescript": "^5"
-  },
-  "trustedDependencies": [
-    "@prisma/client",
-    "@prisma/engines",
-    "@tailwindcss/oxide",
-    "prisma",
-    "sharp"
-  ]
+	"name": "rpg-site-monorepo",
+	"module": "index.ts",
+	"type": "module",
+	"private": true,
+	"workspaces": [
+		"apps/*",
+		"packages/*"
+	],
+	"devDependencies": {
+		"@biomejs/biome": "2.1.2",
+		"@types/bun": "latest"
+	},
+	"peerDependencies": {
+		"typescript": "^5"
+	},
+	"trustedDependencies": [
+		"@prisma/client",
+		"@prisma/engines",
+		"@tailwindcss/oxide",
+		"prisma",
+		"sharp"
+	]
 }

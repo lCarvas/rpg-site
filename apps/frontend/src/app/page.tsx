@@ -1,4 +1,5 @@
 "use client"
+
 import { Button } from "@/components/ui/button"
 import { authClient } from "@/lib/auth-client"
 
@@ -18,9 +19,11 @@ export default function Home() {
 			<div>Hello world!</div>
 			<div className="">{session ? `hello ${session.user.name}` : ""}</div>
 			<div>
-				<Button onClick={signOut} type="button">
-					Logout
-				</Button>
+				{session && (
+					<Button onClick={signOut} type="button">
+						Logout
+					</Button>
+				)}
 			</div>
 		</main>
 	)

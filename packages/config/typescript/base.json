@@ -1,0 +1,35 @@
+{
+	"$schema": "https://json.schemastore.org/tsconfig",
+	"display": "Default",
+	"compilerOptions": {
+		"allowJs": true,
+		"declaration": true,
+		"declarationMap": true,
+		"esModuleInterop": true,
+		"incremental": false,
+		"isolatedModules": true,
+		"lib": ["ESNext", "DOM", "DOM.Iterable"],
+		"module": "preserve",
+		"moduleDetection": "force",
+		"moduleResolution": "bundler",
+		"noUncheckedIndexedAccess": false,
+		"resolveJsonModule": true,
+		"skipLibCheck": true,
+		"strict": true,
+		"target": "ES2022",
+		"baseUrl": "../../../",
+		"paths": {
+			"@web/*": ["apps/frontend/src/*"],
+			"@web/public/*": ["apps/frontend/public/*"],
+			"@web/components": ["apps/frontend/src/components/index.ts"],
+			"@web/layouts": ["apps/frontend/app/src/layouts/index.ts"],
+			"@web/stores": ["apps/frontend/app/src/stores/index.ts"],
+			"@web/libs": ["apps/frontend/app/src/libs/index.ts"],
+			"@api": ["apps/backend/src/index.ts"],
+			"@api/*": ["apps/backend/src/*"],
+			"@libs": ["packages/libs/src/index.ts"],
+			"@libs/*": ["packages/libs/src/*"]
+		}
+	},
+	"exclude": ["node_modules"]
+}

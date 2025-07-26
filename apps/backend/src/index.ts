@@ -12,7 +12,7 @@ const betterAuthView = (context: Context) => {
 	}
 }
 
-const app = new Elysia()
+export const app = new Elysia()
 	.use(
 		cors({
 			origin: "http://localhost:3001",
@@ -24,6 +24,8 @@ const app = new Elysia()
 	.use(userRoutes)
 	.all("/api/auth/*", betterAuthView)
 	.listen(3000)
+
+export type app = typeof app
 
 console.log(
 	`🦊 Elysia is running at ${app.server?.hostname}:${app.server?.port}`,
