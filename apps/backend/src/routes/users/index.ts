@@ -273,7 +273,6 @@ export const userRoutes = new Elysia({ prefix: "/user" })
 	.post(
 		"/sheets/:id/update",
 		async ({ params: { id }, body }) => {
-			console.log(body)
 			return await prisma.characterSheet.update({
 				where: {
 					id: id,
