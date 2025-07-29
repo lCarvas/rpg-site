@@ -7,8 +7,11 @@ import { useState } from "react"
 import { Toaster, toast } from "sonner"
 import { RollSkillButton } from "@/components/dice-component"
 import { StatBar } from "@/components/statBar"
+import { getCharacterSheet, saveCharacterChanges } from "@/dal/dal"
 import { skills } from "@/data/skills"
 import { rollDice, rollDiceNotation } from "@/utils/dice"
+
+const characterSheetDataObject = await getCharacterSheet(1)
 
 export interface globalStatTypes {
 	str: number
@@ -196,60 +199,62 @@ const nexNumberToPercentage: { [key: number]: string } = {
 
 export default function Characters() {
 	const [globalStats, setGlobalStats] = useState<globalStatTypes>({
-		str: 1,
-		agi: 1,
-		int: 1,
-		vig: 1,
-		pre: 1,
-		nex: 1,
-		class: "combatant",
-		background: "",
+		agi: characterSheetDataObject?.agi || 1,
+		str: characterSheetDataObject?.str || 1,
+		int: characterSheetDataObject?.int || 1,
+		vig: characterSheetDataObject?.vig || 1,
+		pre: characterSheetDataObject?.pre || 1,
+		nex: characterSheetDataObject?.nex || 1,
+		class: characterSheetDataObject?.class || "combatant",
+		background: characterSheetDataObject?.background || "academic",
 	})
 
 	const [defensiveStats, setDefensiveValues] = useState({
-		equipDef: "0",
-		otherDef: "0",
-		dodge: "0",
-		blockDr: "0",
+		equipDef: characterSheetDataObject?.equip_def.toString() || "0",
+		otherDef: characterSheetDataObject?.other_def.toString() || "0",
+		dodge: characterSheetDataObject?.dodge.toString() || "0",
+		blockDr: characterSheetDataObject?.block_dr.toString() || "0",
 	})
 
 	const [skillAttributes, setSkillAttributes] = useState<skillObjectTypes>({
-		Acrobatics: { attribute: "AGI", training: 0, otherBonus: 0 },
-		"Animal Handling": {
-			attribute: "PRE",
-			training: 0,
-			otherBonus: 0,
-		},
-		Arts: { attribute: "PRE", training: 0, otherBonus: 0 },
-		Athletics: { attribute: "STR", training: 0, otherBonus: 0 },
-		Crime: { attribute: "AGI", training: 0, otherBonus: 0 },
-		"Current Affairs": {
-			attribute: "INT",
-			training: 0,
-			otherBonus: 0,
-		},
-		Deception: { attribute: "PRE", training: 0, otherBonus: 0 },
-		Diplomacy: { attribute: "PRE", training: 0, otherBonus: 0 },
-		Fighting: { attribute: "STR", training: 0, otherBonus: 0 },
-		Fortitude: { attribute: "VIG", training: 0, otherBonus: 0 },
-		Initiative: { attribute: "AGI", training: 0, otherBonus: 0 },
-		Insight: { attribute: "PRE", training: 0, otherBonus: 0 },
-		Intimidation: { attribute: "PRE", training: 0, otherBonus: 0 },
-		Investigation: { attribute: "INT", training: 0, otherBonus: 0 },
-		Marksmanship: { attribute: "AGI", training: 0, otherBonus: 0 },
-		Medicine: { attribute: "INT", training: 0, otherBonus: 0 },
-		Occultism: { attribute: "INT", training: 0, otherBonus: 0 },
-		Perception: { attribute: "PRE", training: 0, otherBonus: 0 },
-		Piloting: { attribute: "AGI", training: 0, otherBonus: 0 },
-		Profession: { attribute: "INT", training: 0, otherBonus: 0 },
-		Reflexes: { attribute: "AGI", training: 0, otherBonus: 0 },
-		Religion: { attribute: "PRE", training: 0, otherBonus: 0 },
-		Sciences: { attribute: "INT", training: 0, otherBonus: 0 },
-		Stealth: { attribute: "AGI", training: 0, otherBonus: 0 },
-		Survival: { attribute: "INT", training: 0, otherBonus: 0 },
-		Tactics: { attribute: "INT", training: 0, otherBonus: 0 },
-		Technology: { attribute: "INT", training: 0, otherBonus: 0 },
-		Will: { attribute: "PRE", training: 0, otherBonus: 0 },
+		...(characterSheetDataObject?.skills || {
+			Acrobatics: { attribute: "AGI", training: 0, otherBonus: 0 },
+			"Animal Handling": {
+				attribute: "PRE",
+				training: 0,
+				otherBonus: 0,
+			},
+			Arts: { attribute: "PRE", training: 0, otherBonus: 0 },
+			Athletics: { attribute: "STR", training: 0, otherBonus: 0 },
+			Crime: { attribute: "AGI", training: 0, otherBonus: 0 },
+			"Current Affairs": {
+				attribute: "INT",
+				training: 0,
+				otherBonus: 0,
+			},
+			Deception: { attribute: "PRE", training: 0, otherBonus: 0 },
+			Diplomacy: { attribute: "PRE", training: 0, otherBonus: 0 },
+			Fighting: { attribute: "STR", training: 0, otherBonus: 0 },
+			Fortitude: { attribute: "VIG", training: 0, otherBonus: 0 },
+			Initiative: { attribute: "AGI", training: 0, otherBonus: 0 },
+			Insight: { attribute: "PRE", training: 0, otherBonus: 0 },
+			Intimidation: { attribute: "PRE", training: 0, otherBonus: 0 },
+			Investigation: { attribute: "INT", training: 0, otherBonus: 0 },
+			Marksmanship: { attribute: "AGI", training: 0, otherBonus: 0 },
+			Medicine: { attribute: "INT", training: 0, otherBonus: 0 },
+			Occultism: { attribute: "INT", training: 0, otherBonus: 0 },
+			Perception: { attribute: "PRE", training: 0, otherBonus: 0 },
+			Piloting: { attribute: "AGI", training: 0, otherBonus: 0 },
+			Profession: { attribute: "INT", training: 0, otherBonus: 0 },
+			Reflexes: { attribute: "AGI", training: 0, otherBonus: 0 },
+			Religion: { attribute: "PRE", training: 0, otherBonus: 0 },
+			Sciences: { attribute: "INT", training: 0, otherBonus: 0 },
+			Stealth: { attribute: "AGI", training: 0, otherBonus: 0 },
+			Survival: { attribute: "INT", training: 0, otherBonus: 0 },
+			Tactics: { attribute: "INT", training: 0, otherBonus: 0 },
+			Technology: { attribute: "INT", training: 0, otherBonus: 0 },
+			Will: { attribute: "PRE", training: 0, otherBonus: 0 },
+		}),
 	})
 
 	// const defenseValue: number =
@@ -267,6 +272,7 @@ export default function Characters() {
 								...globalStats,
 								str: globalStats.str - 1,
 							})
+							saveCharacterChanges(1, { str: globalStats.str - 1 })
 						}}
 						type="button"
 					>
@@ -294,6 +300,7 @@ export default function Characters() {
 								...globalStats,
 								str: globalStats.str + 1,
 							})
+							saveCharacterChanges(1, { str: globalStats.str + 1 })
 						}}
 						type="button"
 					>
@@ -313,6 +320,7 @@ export default function Characters() {
 									...globalStats,
 									agi: globalStats.agi - 1,
 								})
+								saveCharacterChanges(1, { agi: globalStats.agi - 1 })
 							}}
 							type="button"
 						>
@@ -340,6 +348,7 @@ export default function Characters() {
 									...globalStats,
 									agi: globalStats.agi + 1,
 								})
+								saveCharacterChanges(1, { agi: globalStats.str + 1 })
 							}}
 							type="button"
 						>
@@ -360,6 +369,7 @@ export default function Characters() {
 									...globalStats,
 									int: globalStats.int - 1,
 								})
+								saveCharacterChanges(1, { int: globalStats.int - 1 })
 							}}
 							type="button"
 						>
@@ -389,6 +399,7 @@ export default function Characters() {
 									...globalStats,
 									int: globalStats.int + 1,
 								})
+								saveCharacterChanges(1, { int: globalStats.int + 1 })
 							}}
 							type="button"
 						>
@@ -409,6 +420,8 @@ export default function Characters() {
 									...globalStats,
 									vig: globalStats.vig - 1,
 								})
+
+								saveCharacterChanges(1, { vig: globalStats.vig - 1 })
 							}}
 							type="button"
 						>
@@ -436,6 +449,7 @@ export default function Characters() {
 									...globalStats,
 									vig: globalStats.vig + 1,
 								})
+								saveCharacterChanges(1, { vig: globalStats.vig + 1 })
 							}}
 							type="button"
 						>
@@ -456,6 +470,7 @@ export default function Characters() {
 									...globalStats,
 									pre: globalStats.pre - 1,
 								})
+								saveCharacterChanges(1, { pre: globalStats.pre - 1 })
 							}}
 							type="button"
 						>
@@ -483,6 +498,7 @@ export default function Characters() {
 									...globalStats,
 									pre: globalStats.pre + 1,
 								})
+								saveCharacterChanges(1, { pre: globalStats.pre + 1 })
 							}}
 							type="button"
 						>
@@ -725,7 +741,9 @@ export default function Characters() {
 														},
 													})
 												}}
-												value={skillAttributes[skillNameAsKey].attribute}
+												value={skillAttributes[
+													skillNameAsKey
+												].attribute.toUpperCase()}
 											>
 												<option className="text-white" value="STR">
 													STR

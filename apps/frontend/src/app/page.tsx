@@ -1,12 +1,14 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { getUsers } from "@/dal/dal"
+import { getCharacterSheet, getUsers } from "@/dal/dal"
 import { authClient } from "@/lib/auth-client"
 
 const signOut = async () => {
 	await authClient.signOut()
 }
+
+const getUsersRun = await getUsers()
 
 export default function Home() {
 	const {
@@ -18,7 +20,7 @@ export default function Home() {
 	return (
 		<main>
 			<div>Hello world!</div>
-			{getUsers()}
+			{getUsersRun}
 			<div className="">{session ? `hello ${session.user.name}` : ""}</div>
 			<div>
 				{session && (

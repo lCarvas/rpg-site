@@ -1,4 +1,5 @@
 import { cors } from "@elysiajs/cors"
+import { swagger } from "@elysiajs/swagger"
 import { type Context, Elysia } from "elysia"
 import { auth } from "./lib/auth"
 import { userRoutes } from "./routes/users"
@@ -13,6 +14,7 @@ const betterAuthView = (context: Context) => {
 }
 
 export const app = new Elysia()
+	.use(swagger())
 	.use(
 		cors({
 			origin: "http://localhost:3001",
