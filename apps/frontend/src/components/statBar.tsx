@@ -1,104 +1,40 @@
-import type { globalStatTypes } from "@/app/characters/page"
+import type { StatsType } from "@/app/character/[id]/page"
 import {
 	ChevronLeft,
 	ChevronRight,
 	ChevronsLeft,
 	ChevronsRight,
 } from "lucide-react"
-import { useEffect, useRef, useState } from "react"
-import { classes, type classesObjectTypes } from "@/data/classes"
+import { saveCharacterChanges } from "@/dal/dal"
 
 interface StatBarProps {
 	label: string
 	barColor: string
 	stat: "Hp" | "San" | "Pe" | "Pd"
-	globalStats: globalStatTypes
+	statsState: StatsType
+	setStatsState: React.Dispatch<React.SetStateAction<StatsType | null>>
 }
 
-interface StatsType {
-	currentHp: string
-	maxHp: string
-	currentSan: string
-	maxSan: string
-	currentPe: string
-	maxPe: string
-	currentPd: string
-	maxPd: string
-}
-
-export function StatBar({ label, barColor, stat, globalStats }: StatBarProps) {
-	const [stats, setStats] = useState<StatsType>({
-		currentHp: "0",
-		maxHp: "0",
-		currentSan: "0",
-		maxSan: "0",
-		currentPe: "0",
-		maxPe: "0",
-		currentPd: "0",
-		maxPd: "0",
-	})
-
-	const prevNexRef = useRef(globalStats.nex)
-
-	useEffect(() => {
-		const classAsKey = globalStats.class as keyof classesObjectTypes
-		const prevNexValue = prevNexRef.current
-		setStats((prevState) => ({
-			...prevState,
-			maxHp: (
-				classes[classAsKey].initialPv +
-				globalStats.vig +
-				(globalStats.nex - 1) * (globalStats.vig + classes[classAsKey].levelPv)
-			).toString(),
-			currentHp: Math.max(
-				0,
-				Number(prevState.currentHp) +
-					(globalStats.nex - prevNexValue) *
-						(globalStats.vig + classes[classAsKey].levelPv),
-			).toString(),
-			maxSan: (
-				classes[classAsKey].initialSan +
-				(globalStats.nex - 1) * classes[classAsKey].levelSan
-			).toString(),
-			currentSan: Math.max(
-				0,
-				Number(prevState.currentSan) +
-					(globalStats.nex - prevNexValue) * classes[classAsKey].levelSan,
-			).toString(),
-			maxPe: (
-				classes[classAsKey].initialPe +
-				globalStats.pre +
-				(globalStats.nex - 1) * (globalStats.pre + classes[classAsKey].levelPe)
-			).toString(),
-			currentPe: Math.max(
-				0,
-				Number(prevState.currentPe) +
-					(globalStats.nex - prevNexValue) *
-						(globalStats.pre + classes[classAsKey].levelPe),
-			).toString(),
-			maxPd: (
-				classes[classAsKey].initialPd +
-				globalStats.pre +
-				(globalStats.nex - 1) * (globalStats.pre + classes[classAsKey].levelPd)
-			).toString(),
-			currentPd: Math.max(
-				0,
-				Number(prevState.currentPd) +
-					(globalStats.nex - prevNexValue) *
-						(globalStats.pre + classes[classAsKey].levelPd),
-			).toString(),
-		}))
-		prevNexRef.current = globalStats.nex
-	}, [globalStats.vig, globalStats.pre, globalStats.nex, globalStats.class])
-
+export function StatBar({
+	label,
+	barColor,
+	stat,
+	statsState,
+	setStatsState,
+}: StatBarProps) {
 	function updateBarValueOnBlur(
 		statToChange: string,
 		value: number,
 		current: boolean,
 	) {
-		setStats({
-			...stats,
-			[`${current ? "current" : "max"}${statToChange}`]: Math.max(0, value),
+		const statKey = `${current ? "current" : "max"}${statToChange}`
+		const finalvalue = Math.max(0, value)
+		setStatsState({
+			...statsState,
+			[statKey]: finalvalue.toString(),
+		})
+		saveCharacterChanges(1, {
+			[statKey]: finalvalue,
 		})
 	}
 
@@ -107,19 +43,21 @@ export function StatBar({ label, barColor, stat, globalStats }: StatBarProps) {
 		value: string,
 		current: boolean,
 	) {
-		setStats({
-			...stats,
+		setStatsState({
+			...statsState,
 			[`${current ? "current" : "max"}${statToChange}`]: value,
 		})
 	}
 
 	function updateBarValueClick(statToChange: string, value: number) {
-		setStats({
-			...stats,
-			[`current${statToChange}`]: Math.max(
-				0,
-				Number(stats[`current${statToChange}` as keyof StatsType]) + value,
-			),
+		const statKey = `current${statToChange}` as keyof StatsType
+		const finalValue = Math.max(0, Number(statsState[statKey]) + value)
+		setStatsState({
+			...statsState,
+			[statKey]: finalValue.toString(),
+		})
+		saveCharacterChanges(1, {
+			[statKey]: finalValue,
 		})
 	}
 
@@ -130,7 +68,7 @@ export function StatBar({ label, barColor, stat, globalStats }: StatBarProps) {
 				<div
 					className={`${barColor} absolute h-[100%] transition-all duration-500 ease-in-out`}
 					style={{
-						width: `${Math.min(100, (Number(stats[`current${stat}`]) / Number(stats[`max${stat}`])) * 100)}%`,
+						width: `${Math.min(100, (Number(statsState[`current${stat}`]) / Number(statsState[`max${stat}`])) * 100)}%`,
 					}}
 				></div>
 				<div className="bar-interactions flex h-[100%] items-center justify-between">
@@ -160,7 +98,7 @@ export function StatBar({ label, barColor, stat, globalStats }: StatBarProps) {
 								updateBarValueOnChange(stat, e.target.value, true)
 							}
 							type="number"
-							value={stats[`current${stat}`]}
+							value={statsState[`current${stat}`]}
 						/>{" "}
 						<span className="text-base">/</span>{" "}
 						<input
@@ -172,7 +110,7 @@ export function StatBar({ label, barColor, stat, globalStats }: StatBarProps) {
 								updateBarValueOnChange(stat, e.target.value, false)
 							}
 							type="number"
-							value={stats[`max${stat}`]}
+							value={statsState[`max${stat}`]}
 						/>
 					</div>
 					<div className="bar-buttons flex items-center">

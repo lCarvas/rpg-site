@@ -9,13 +9,22 @@ export const auth = betterAuth({
 		provider: "postgresql",
 	}),
 	trustedOrigins: ["http://localhost:3001"],
-	// emailAndPassword: {
-	// 	enabled: true,
-	// },
 	socialProviders: {
 		google: {
 			clientId: process.env.GOOGLE_CLIENT_ID as string,
 			clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
+		},
+	},
+	advanced: {
+		cookies: {
+			session_token: {
+				attributes: {
+					sameSite: "none",
+					secure: true,
+					httpOnly: true,
+					partitioned: true,
+				},
+			},
 		},
 	},
 })
