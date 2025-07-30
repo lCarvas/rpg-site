@@ -26,27 +26,27 @@ export default function CharactersPage() {
 	}
 
 	return (
-		<main>
-			<div className="flex flex-col gap-4">
-				<h1 className="font-bold text-2xl">Your Characters</h1>
-				{userSheets && !isPending ? (
-					userSheets.map((sheet) => (
-						<div className="rounded border p-4" key={sheet.id}>
-							<p>Character ID: {sheet.id}</p>
-							<Button
-								onClick={() => {
-									router.push(`/character/${sheet.id}`)
-								}}
-								type="button"
-							>
-								Sheet
-							</Button>
-						</div>
-					))
-				) : (
-					<p>No characters found.</p>
-				)}
-			</div>
-		</main>
+		<div className="flex flex-col gap-4">
+			<h1 className="font-bold text-2xl">Your Characters</h1>
+			{isPending || userSheets === null ? (
+				<p>Loading your characters...</p>
+			) : userSheets.length > 0 ? (
+				userSheets.map((sheet) => (
+					<div className="rounded border p-4" key={sheet.id}>
+						<p>Character ID: {sheet.id}</p>
+						<Button
+							onClick={() => {
+								router.push(`/character/${sheet.id}`)
+							}}
+							type="button"
+						>
+							Sheet
+						</Button>
+					</div>
+				))
+			) : (
+				<p>No characters found.</p>
+			)}
+		</div>
 	)
 }
