@@ -14,8 +14,8 @@ export const app = new Elysia()
 			allowedHeaders: ["Content-Type", "Authorization"],
 		}),
 	)
-	.use(userRoutes)
 	.use(betterAuth)
+	.use(userRoutes)
 	.listen(3000)
 
 export type app = typeof app

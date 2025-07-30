@@ -6,14 +6,6 @@ import { prisma } from "@api/lib/prisma-client"
 import { Elysia, t } from "elysia"
 
 export const userRoutes = new Elysia({ prefix: "/user" })
-	.get("/", async ({ status }) => {
-		try {
-			const allUsers = await prisma.user.findMany()
-			return allUsers ?? status(404)
-		} catch (error) {
-			return error
-		}
-	})
 	.get(
 		"/:id/sheets",
 		async ({ params: { id } }) => {

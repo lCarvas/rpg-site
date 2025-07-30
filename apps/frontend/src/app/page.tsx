@@ -10,7 +10,6 @@ const signOut = async () => {
 export default function Home() {
 	const {
 		data: session,
-		isPending, //loading state
 	} = authClient.useSession()
 	return (
 		<main>
