@@ -1,6 +1,6 @@
 "use client"
 
-import type { CharacterSheetPlainType } from "@api/generated/prismabox/CharacterSheet"
+import type { CharacterSheetResponseType } from "@api/routes/users"
 import Image from "next/image"
 import { useParams } from "next/navigation"
 import minusIcon from "public/icons/circle-minus-solid.svg"
@@ -52,14 +52,21 @@ const trainingColorMap: Record<string, string> = {
 export default function Characters() {
 	const characterSheetIdRef = useRef<string>(useParams<{ id: string }>().id)
 	const [characterSheetDataObject, setCharacterSheetDataObject] =
-		useState<CharacterSheetPlainType | null>(null)
+		useState<CharacterSheetResponseType | null>(null)
 	const [globalStats, setGlobalStats] = useState<globalStatTypes | null>(null)
 	const [defensiveStats, setDefensiveValues] = useState<Record<
 		string,
 		string
 	> | null>(null)
 	const [skillAttributes, setSkillAttributes] =
-		useState<skillObjectTypes | null>(null)
+		useState<skillObjectTypes | null>(
+			Object.fromEntries(
+				Object.entries(skills).map(([key, value]) => [
+					key,
+					{ attribute: value.attribute, trainingBonus: "0", otherBonus: "0" },
+				]),
+			),
+		) //old state, get from commits
 	const [stats, setStats] = useState<StatsType | null>(null)
 
 	useEffect(() => {
@@ -82,18 +89,19 @@ export default function Characters() {
 				dodge: data.dodge.toString(),
 				blockDr: data.blockDr.toString(),
 			})
-			setSkillAttributes(
-				Object.fromEntries(
-					Object.entries(
-						data.skills as Record<string, Record<string, string>>,
-					).map(([key, value]) => [
-						key,
-						Object.fromEntries(
-							Object.entries(value).map(([k, v]) => [k, v.toString()]),
-						),
+			setSkillAttributes((prevState) => ({
+				...prevState,
+				...Object.fromEntries(
+					data.skills.map((skill) => [
+						skill.skill.name,
+						{
+							attribute: skill.attribute,
+							trainingBonus: skill.trainingBonus.toString(),
+							otherBonus: skill.otherBonus.toString(),
+						},
 					]),
 				),
-			)
+			}))
 			setStats({
 				currentHp: data.currentHp.toString(),
 				maxHp: data.maxHp.toString(),
@@ -762,7 +770,7 @@ export default function Characters() {
 														...skillAttributes,
 														[skill.name]: {
 															...skillAttributes[skill.name],
-															training: e.target.value,
+															trainingBonus: e.target.value,
 														},
 													})
 													saveCharacterChanges(1, {
@@ -770,7 +778,7 @@ export default function Characters() {
 															...characterSheetDataObject.skills,
 															[skill.name]: {
 																...characterSheetDataObject.skills[skill.name],
-																training: e.target.value,
+																trainingBonus: Number(e.target.value),
 															},
 														},
 													})

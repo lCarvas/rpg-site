@@ -33,10 +33,10 @@ model User {
 }
 
 model CharacterSheet {
-  id            Int      @id @default(autoincrement())
-  owner         User     @relation(fields: [userId], references: [id])
+  id            Int               @id @default(autoincrement())
+  owner         User              @relation(fields: [userId], references: [id])
   userId        String
-  createdAt     DateTime @default(now())
+  createdAt     DateTime          @default(now())
   str           Int
   agi           Int
   int           Int
@@ -63,7 +63,26 @@ model CharacterSheet {
   armor         String
   resistances   String
   proficiencies String
-  skills        Json
+  skills        CharacterSkills[]
+}
+
+model Skills {
+  id         Int               @id @default(autoincrement())
+  name       String
+  characters CharacterSkills[]
+}
+
+model CharacterSkills {
+  id            Int            @id @default(autoincrement())
+  characterId   Int
+  skillId       Int
+  character     CharacterSheet @relation(fields: [characterId], references: [id])
+  skill         Skills         @relation(fields: [skillId], references: [id])
+  attribute     String         @db.Char(3)
+  trainingBonus Int
+  otherBonus    Int
+
+  @@unique([characterId, skillId])
 }
 
 model Session {

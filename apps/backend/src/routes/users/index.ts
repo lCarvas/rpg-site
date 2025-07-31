@@ -3,7 +3,7 @@ import {
 	CharacterSheetPlainInputUpdate,
 } from "@api/generated/prismabox/CharacterSheet"
 import { prisma } from "@api/lib/prisma-client"
-import { Elysia, t } from "elysia"
+import { Elysia, type Static, t } from "elysia"
 
 export const userRoutes = new Elysia({ prefix: "/user" })
 	.get(
@@ -57,7 +57,27 @@ export const userRoutes = new Elysia({ prefix: "/user" })
 						armor: body.armor,
 						resistances: body.resistances,
 						proficiencies: body.proficiencies,
-						skills: body.skills,
+						skills: {
+							create: await Promise.all(
+								body.skills.map(async (skill) => {
+									const skillId = await prisma.skills.findFirst({
+										select: { id: true },
+										where: { name: skill.name },
+									})
+
+									if (!skillId) {
+										throw new Error(`Skill ${skill.name} not found`)
+									}
+
+									return {
+										skillId: skillId.id,
+										attribute: skill.attribute,
+										trainingBonus: skill.trainingBonus,
+										otherBonus: skill.otherBonus,
+									}
+								}),
+							),
+						},
 					},
 				})
 			} catch (e) {
@@ -93,150 +113,14 @@ export const userRoutes = new Elysia({ prefix: "/user" })
 				armor: t.String(),
 				resistances: t.String(),
 				proficiencies: t.String(),
-				skills: t.Object({
-					Acrobatics: t.Object({
-						attribute: t.String({ minLength: 3, maxLength: 3 }),
-						training: t.Number(),
-						otherBonus: t.Number(),
+				skills: t.Array(
+					t.Object({
+						name: t.String(),
+						attribute: t.String({ maxLength: 3 }),
+						trainingBonus: t.Integer(),
+						otherBonus: t.Integer(),
 					}),
-					"Animal Handling": t.Object({
-						attribute: t.String({ minLength: 3, maxLength: 3 }),
-						training: t.Number(),
-						otherBonus: t.Number(),
-					}),
-
-					Arts: t.Object({
-						attribute: t.String({ minLength: 3, maxLength: 3 }),
-						training: t.Number(),
-						otherBonus: t.Number(),
-					}),
-					Athletics: t.Object({
-						attribute: t.String({ minLength: 3, maxLength: 3 }),
-						training: t.Number(),
-						otherBonus: t.Number(),
-					}),
-					Crime: t.Object({
-						attribute: t.String({ minLength: 3, maxLength: 3 }),
-						training: t.Number(),
-						otherBonus: t.Number(),
-					}),
-					"Current Affairs": t.Object({
-						attribute: t.String({ minLength: 3, maxLength: 3 }),
-						training: t.Number(),
-						otherBonus: t.Number(),
-					}),
-					Deception: t.Object({
-						attribute: t.String({ minLength: 3, maxLength: 3 }),
-						training: t.Number(),
-						otherBonus: t.Number(),
-					}),
-					Diplomacy: t.Object({
-						attribute: t.String({ minLength: 3, maxLength: 3 }),
-						training: t.Number(),
-						otherBonus: t.Number(),
-					}),
-
-					Fighting: t.Object({
-						attribute: t.String({ minLength: 3, maxLength: 3 }),
-						training: t.Number(),
-						otherBonus: t.Number(),
-					}),
-					Fortitude: t.Object({
-						attribute: t.String({ minLength: 3, maxLength: 3 }),
-						training: t.Number(),
-						otherBonus: t.Number(),
-					}),
-					Initiative: t.Object({
-						attribute: t.String({ minLength: 3, maxLength: 3 }),
-						training: t.Number(),
-						otherBonus: t.Number(),
-					}),
-					Insight: t.Object({
-						attribute: t.String({ minLength: 3, maxLength: 3 }),
-						training: t.Number(),
-						otherBonus: t.Number(),
-					}),
-					Intimidation: t.Object({
-						attribute: t.String({ minLength: 3, maxLength: 3 }),
-						training: t.Number(),
-						otherBonus: t.Number(),
-					}),
-					Investigation: t.Object({
-						attribute: t.String({ minLength: 3, maxLength: 3 }),
-						training: t.Number(),
-						otherBonus: t.Number(),
-					}),
-					Marksmanship: t.Object({
-						attribute: t.String({ minLength: 3, maxLength: 3 }),
-						training: t.Number(),
-						otherBonus: t.Number(),
-					}),
-					Medicine: t.Object({
-						attribute: t.String({ minLength: 3, maxLength: 3 }),
-						training: t.Number(),
-						otherBonus: t.Number(),
-					}),
-					Occultism: t.Object({
-						attribute: t.String({ minLength: 3, maxLength: 3 }),
-						training: t.Number(),
-						otherBonus: t.Number(),
-					}),
-					Perception: t.Object({
-						attribute: t.String({ minLength: 3, maxLength: 3 }),
-						training: t.Number(),
-						otherBonus: t.Number(),
-					}),
-					Piloting: t.Object({
-						attribute: t.String({ minLength: 3, maxLength: 3 }),
-						training: t.Number(),
-						otherBonus: t.Number(),
-					}),
-					Profession: t.Object({
-						attribute: t.String({ minLength: 3, maxLength: 3 }),
-						training: t.Number(),
-						otherBonus: t.Number(),
-					}),
-					Reflexes: t.Object({
-						attribute: t.String({ minLength: 3, maxLength: 3 }),
-						training: t.Number(),
-						otherBonus: t.Number(),
-					}),
-					Religion: t.Object({
-						attribute: t.String({ minLength: 3, maxLength: 3 }),
-						training: t.Number(),
-						otherBonus: t.Number(),
-					}),
-					Sciences: t.Object({
-						attribute: t.String({ minLength: 3, maxLength: 3 }),
-						training: t.Number(),
-						otherBonus: t.Number(),
-					}),
-					Stealth: t.Object({
-						attribute: t.String({ minLength: 3, maxLength: 3 }),
-						training: t.Number(),
-						otherBonus: t.Number(),
-					}),
-					Survival: t.Object({
-						attribute: t.String({ minLength: 3, maxLength: 3 }),
-						training: t.Number(),
-						otherBonus: t.Number(),
-					}),
-					Tactics: t.Object({
-						attribute: t.String({ minLength: 3, maxLength: 3 }),
-						training: t.Number(),
-						otherBonus: t.Number(),
-					}),
-					Technology: t.Object({
-						attribute: t.String({ minLength: 3, maxLength: 3 }),
-						training: t.Number(),
-						otherBonus: t.Number(),
-					}),
-					Will: t.Object({
-						attribute: t.String({ minLength: 3, maxLength: 3 }),
-						training: t.Number(),
-						otherBonus: t.Number(),
-					}),
-				}),
+				),
 			}),
 		},
 	)
@@ -249,15 +133,44 @@ export const userRoutes = new Elysia({ prefix: "/user" })
 						equals: id,
 					},
 				},
+				include: {
+					skills: {
+						select: {
+							skill: {
+								select: {
+									name: true,
+								},
+							},
+							attribute: true,
+							trainingBonus: true,
+							otherBonus: true,
+						},
+					},
+				},
 			})
-			return characterSheet ?? status(404, "Not Found")
+
+			return characterSheet ?? status(404, "Character sheet not found")
 		},
 		{
 			params: t.Object({
 				id: t.Numeric(),
 			}),
 			response: {
-				200: CharacterSheetPlain,
+				200: t.Intersect([
+					CharacterSheetPlain,
+					t.Object({
+						skills: t.Array(
+							t.Object({
+								skill: t.Object({
+									name: t.String(),
+								}),
+								attribute: t.String({ maxLength: 3 }),
+								trainingBonus: t.Number(),
+								otherBonus: t.Number(),
+							}),
+						),
+					}),
+				]),
 				404: t.String(),
 			},
 		},
@@ -279,3 +192,23 @@ export const userRoutes = new Elysia({ prefix: "/user" })
 			body: CharacterSheetPlainInputUpdate,
 		},
 	)
+
+const characterSheetResponseTypeBox = t.Intersect([
+	CharacterSheetPlain,
+	t.Object({
+		skills: t.Array(
+			t.Object({
+				skill: t.Object({
+					name: t.String(),
+				}),
+				attribute: t.String({ maxLength: 3 }),
+				trainingBonus: t.Number(),
+				otherBonus: t.Number(),
+			}),
+		),
+	}),
+])
+
+export type CharacterSheetResponseType = Static<
+	typeof characterSheetResponseTypeBox
+>
