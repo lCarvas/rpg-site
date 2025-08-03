@@ -76,7 +76,7 @@ model CharacterSkills {
   id            Int            @id @default(autoincrement())
   characterId   Int
   skillId       Int
-  character     CharacterSheet @relation(fields: [characterId], references: [id])
+  character     CharacterSheet @relation(fields: [characterId], references: [id], onDelete: Cascade)
   skill         Skills         @relation(fields: [skillId], references: [id])
   attribute     String         @db.Char(3)
   trainingBonus Int

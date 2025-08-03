@@ -16,11 +16,29 @@ export async function saveCharacterChanges(
 ) {
 	const { data: characterSheet, error } = await api.user
 		.sheets({ id: id })
-		.update.patch(body)
+		["base-sheet"].update.patch(body)
 	if (error) {
 		throw error.status
 	}
 	return characterSheet
+}
+
+export async function saveCharacterSkills(
+	id: string | number,
+	body: {
+		skillNameId: string
+		attribute?: string
+		trainingBonus?: number
+		otherBonus?: number
+	},
+) {
+	const { data: characterSkills, error } = await api.user
+		.sheets({ id: id })
+		.skills.update.patch(body)
+	if (error) {
+		throw error.status
+	}
+	return characterSkills
 }
 
 export async function getUserCharacterSheets(userId: string) {

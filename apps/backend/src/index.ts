@@ -5,7 +5,17 @@ import { betterAuth } from "./routes/better-auth"
 import { userRoutes } from "./routes/users"
 
 export const app = new Elysia()
-	.use(swagger())
+	.use(
+		swagger({
+			documentation: {
+				info: {
+					title: "RPG Site API",
+					version: "1.0.0",
+				},
+				tags: [{ name: "User", description: "User related endpoints" }],
+			},
+		}),
+	)
 	.use(
 		cors({
 			origin: "http://localhost:3001",

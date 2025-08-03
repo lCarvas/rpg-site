@@ -2,26 +2,34 @@ import {
 	CharacterSheetPlain,
 	CharacterSheetPlainInputUpdate,
 } from "@api/generated/prismabox/CharacterSheet"
+import { CharacterSkillsPlainInputUpdate } from "@api/generated/prismabox/CharacterSkills"
 import { prisma } from "@api/lib/prisma-client"
+import { skills } from "@frontend/data/skills"
 import { Elysia, type Static, t } from "elysia"
 
-export const userRoutes = new Elysia({ prefix: "/user" })
+export const userRoutes = new Elysia({ prefix: "/user", tags: ["User"] })
 	.get(
 		"/:id/sheets",
-		async ({ params: { id } }) => {
+		async ({ params: { id: userId } }) => {
 			return await prisma.characterSheet.findMany({
 				select: {
 					id: true,
 				},
 				where: {
 					userId: {
-						equals: id,
+						equals: userId,
 					},
 				},
 			})
 		},
 		{
 			params: t.Object({ id: t.String() }),
+			response: {
+				200: t.Array(t.Object({ id: t.Number() })),
+			},
+			detail: {
+				summary: "Get user character sheets",
+			},
 		},
 	)
 	.post(
@@ -59,21 +67,26 @@ export const userRoutes = new Elysia({ prefix: "/user" })
 						proficiencies: body.proficiencies,
 						skills: {
 							create: await Promise.all(
-								body.skills.map(async (skill) => {
+								Object.keys(skills).map(async (skillKey) => {
+									const skill = skills[skillKey as keyof typeof skills]
 									const skillId = await prisma.skills.findFirst({
 										select: { id: true },
-										where: { name: skill.name },
+										where: { name: skillKey },
 									})
 
 									if (!skillId) {
 										throw new Error(`Skill ${skill.name} not found`)
 									}
 
+									const skillTrainingOverride = body.skills.find(
+										(s) => s === skillKey,
+									)
+
 									return {
 										skillId: skillId.id,
 										attribute: skill.attribute,
-										trainingBonus: skill.trainingBonus,
-										otherBonus: skill.otherBonus,
+										trainingBonus: skillTrainingOverride ? 5 : 0,
+										otherBonus: 0,
 									}
 								}),
 							),
@@ -113,15 +126,11 @@ export const userRoutes = new Elysia({ prefix: "/user" })
 				armor: t.String(),
 				resistances: t.String(),
 				proficiencies: t.String(),
-				skills: t.Array(
-					t.Object({
-						name: t.String(),
-						attribute: t.String({ maxLength: 3 }),
-						trainingBonus: t.Integer(),
-						otherBonus: t.Integer(),
-					}),
-				),
+				skills: t.Array(t.String()),
 			}),
+			detail: {
+				summary: "Create a new character sheet",
+			},
 		},
 	)
 	.get(
@@ -156,7 +165,7 @@ export const userRoutes = new Elysia({ prefix: "/user" })
 				id: t.Numeric(),
 			}),
 			response: {
-				200: t.Intersect([
+				200: t.Composite([
 					CharacterSheetPlain,
 					t.Object({
 						skills: t.Array(
@@ -173,10 +182,13 @@ export const userRoutes = new Elysia({ prefix: "/user" })
 				]),
 				404: t.String(),
 			},
+			detail: {
+				summary: "Get character sheet data by ID",
+			},
 		},
 	)
 	.patch(
-		"/sheets/:id/update",
+		"/sheets/:id/base-sheet/update",
 		async ({ params: { id }, body }) => {
 			return await prisma.characterSheet.update({
 				where: {
@@ -192,8 +204,44 @@ export const userRoutes = new Elysia({ prefix: "/user" })
 			body: CharacterSheetPlainInputUpdate,
 		},
 	)
+	.patch(
+		"/sheets/:id/skills/update",
+		async ({ params: { id: characterSheetId }, body }) => {
+			const skillToUpdate = await prisma.skills.findFirst({
+				select: { id: true },
+				where: { name: body.skillNameId },
+			})
 
-const characterSheetResponseTypeBox = t.Intersect([
+			if (!skillToUpdate) {
+				throw new Error(`Skill ${body.skillNameId} not found`)
+			}
+
+			return await prisma.characterSkills.update({
+				where: {
+					characterId_skillId: {
+						skillId: skillToUpdate.id,
+						characterId: characterSheetId,
+					},
+				},
+				data: {
+					attribute: body.attribute,
+					trainingBonus: body.trainingBonus,
+					otherBonus: body.otherBonus,
+				},
+			})
+		},
+		{
+			params: t.Object({ id: t.Numeric() }),
+			body: t.Composite([
+				t.Object({
+					skillNameId: t.String(),
+				}),
+				CharacterSkillsPlainInputUpdate,
+			]),
+		},
+	)
+
+const characterSheetResponseTypeBox = t.Composite([
 	CharacterSheetPlain,
 	t.Object({
 		skills: t.Array(

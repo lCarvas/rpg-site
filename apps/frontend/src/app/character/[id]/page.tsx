@@ -9,7 +9,11 @@ import { useEffect, useRef, useState } from "react"
 import { Toaster, toast } from "sonner"
 import { RollSkillButton } from "@/components/dice-component"
 import { StatBar } from "@/components/statBar"
-import { getCharacterSheet, saveCharacterChanges } from "@/dal/dal"
+import {
+	getCharacterSheet,
+	saveCharacterChanges,
+	saveCharacterSkills,
+} from "@/dal/dal"
 import { classes, type classesObjectTypes } from "@/data/classes"
 import { skills } from "@/data/skills"
 import { rollDice, rollDiceNotation } from "@/utils/dice"
@@ -146,7 +150,9 @@ export default function Characters() {
 								...globalStats,
 								str: globalStats.str - 1,
 							})
-							saveCharacterChanges(1, { str: globalStats.str - 1 })
+							saveCharacterChanges(characterSheetIdRef.current, {
+								str: globalStats.str - 1,
+							})
 						}}
 						type="button"
 					>
@@ -174,7 +180,9 @@ export default function Characters() {
 								...globalStats,
 								str: globalStats.str + 1,
 							})
-							saveCharacterChanges(1, { str: globalStats.str + 1 })
+							saveCharacterChanges(characterSheetIdRef.current, {
+								str: globalStats.str + 1,
+							})
 						}}
 						type="button"
 					>
@@ -194,7 +202,9 @@ export default function Characters() {
 									...globalStats,
 									agi: globalStats.agi - 1,
 								})
-								saveCharacterChanges(1, { agi: globalStats.agi - 1 })
+								saveCharacterChanges(characterSheetIdRef.current, {
+									agi: globalStats.agi - 1,
+								})
 							}}
 							type="button"
 						>
@@ -222,7 +232,9 @@ export default function Characters() {
 									...globalStats,
 									agi: globalStats.agi + 1,
 								})
-								saveCharacterChanges(1, { agi: globalStats.str + 1 })
+								saveCharacterChanges(characterSheetIdRef.current, {
+									agi: globalStats.str + 1,
+								})
 							}}
 							type="button"
 						>
@@ -243,7 +255,9 @@ export default function Characters() {
 									...globalStats,
 									int: globalStats.int - 1,
 								})
-								saveCharacterChanges(1, { int: globalStats.int - 1 })
+								saveCharacterChanges(characterSheetIdRef.current, {
+									int: globalStats.int - 1,
+								})
 							}}
 							type="button"
 						>
@@ -273,7 +287,9 @@ export default function Characters() {
 									...globalStats,
 									int: globalStats.int + 1,
 								})
-								saveCharacterChanges(1, { int: globalStats.int + 1 })
+								saveCharacterChanges(characterSheetIdRef.current, {
+									int: globalStats.int + 1,
+								})
 							}}
 							type="button"
 						>
@@ -295,7 +311,9 @@ export default function Characters() {
 									vig: globalStats.vig - 1,
 								})
 
-								saveCharacterChanges(1, { vig: globalStats.vig - 1 })
+								saveCharacterChanges(characterSheetIdRef.current, {
+									vig: globalStats.vig - 1,
+								})
 							}}
 							type="button"
 						>
@@ -323,7 +341,9 @@ export default function Characters() {
 									...globalStats,
 									vig: globalStats.vig + 1,
 								})
-								saveCharacterChanges(1, { vig: globalStats.vig + 1 })
+								saveCharacterChanges(characterSheetIdRef.current, {
+									vig: globalStats.vig + 1,
+								})
 							}}
 							type="button"
 						>
@@ -344,7 +364,9 @@ export default function Characters() {
 									...globalStats,
 									pre: globalStats.pre - 1,
 								})
-								saveCharacterChanges(1, { pre: globalStats.pre - 1 })
+								saveCharacterChanges(characterSheetIdRef.current, {
+									pre: globalStats.pre - 1,
+								})
 							}}
 							type="button"
 						>
@@ -372,7 +394,9 @@ export default function Characters() {
 									...globalStats,
 									pre: globalStats.pre + 1,
 								})
-								saveCharacterChanges(1, { pre: globalStats.pre + 1 })
+								saveCharacterChanges(characterSheetIdRef.current, {
+									pre: globalStats.pre + 1,
+								})
 							}}
 							type="button"
 						>
@@ -450,7 +474,7 @@ export default function Characters() {
 										...prevState,
 										...newStats,
 									}))
-									saveCharacterChanges(1, {
+									saveCharacterChanges(characterSheetIdRef.current, {
 										class: e.target.value,
 										...newStats,
 									})
@@ -529,7 +553,7 @@ export default function Characters() {
 										...prevState,
 										...newStats,
 									}))
-									saveCharacterChanges(1, {
+									saveCharacterChanges(characterSheetIdRef.current, {
 										nex: newNexValue,
 										...newStats,
 									})
@@ -689,17 +713,20 @@ export default function Characters() {
 							</tr>
 						</thead>
 						<tbody className="text-sm leading-[1.6]">
-							{Object.values(skills).map((skill) => {
+							{Object.keys(skills).map((skillKey) => {
+								const skill = skills[skillKey as keyof typeof skills]
 								const skillBonus =
-									Number(skillAttributes[skill.name].training) +
-									Number(skillAttributes[skill.name].otherBonus)
+									Number(skillAttributes[skillKey].trainingBonus) +
+									Number(skillAttributes[skillKey].otherBonus)
 
 								return (
 									<tr
 										className={
-											trainingColorMap[skillAttributes[skill.name].training] ||
-											"border-white text-white"
+											trainingColorMap[
+												skillAttributes[skillKey].trainingBonus
+											] || "border-white text-white"
 										}
+										data-skill-id={skillKey}
 										key={skill.name}
 									>
 										<td className="p-[1px] align-middle">
@@ -711,7 +738,7 @@ export default function Characters() {
 															description: `${rollDice(
 																globalStats[
 																	skillAttributes[
-																		`${skill.name}`
+																		`${skillKey}`
 																	].attribute.toLowerCase() as keyof globalStatTypes
 																] as number,
 																+skillBonus,
@@ -732,15 +759,17 @@ export default function Characters() {
 												onChange={(e) => {
 													setSkillAttributes({
 														...skillAttributes,
-														[skill.name]: {
-															...skillAttributes[skill.name],
+														[skillKey]: {
+															...skillAttributes[skillKey],
 															attribute: e.target.value,
 														},
 													})
+													saveCharacterSkills(characterSheetIdRef.current, {
+														skillNameId: skillKey,
+														attribute: e.target.value,
+													})
 												}}
-												value={skillAttributes[
-													skill.name
-												].attribute.toUpperCase()}
+												value={skillAttributes[skillKey].attribute}
 											>
 												<option className="text-white" value="STR">
 													STR
@@ -768,22 +797,17 @@ export default function Characters() {
 												onChange={(e) => {
 													setSkillAttributes({
 														...skillAttributes,
-														[skill.name]: {
-															...skillAttributes[skill.name],
+														[skillKey]: {
+															...skillAttributes[skillKey],
 															trainingBonus: e.target.value,
 														},
 													})
-													saveCharacterChanges(1, {
-														skills: {
-															...characterSheetDataObject.skills,
-															[skill.name]: {
-																...characterSheetDataObject.skills[skill.name],
-																trainingBonus: Number(e.target.value),
-															},
-														},
+													saveCharacterSkills(characterSheetIdRef.current, {
+														skillNameId: skillKey,
+														trainingBonus: Number(e.target.value),
 													})
 												}}
-												value={skillAttributes[skill.name].training}
+												value={skillAttributes[skillKey].trainingBonus}
 											>
 												<option className="text-white" value="0">
 													0
@@ -810,27 +834,35 @@ export default function Characters() {
 														if (inputValue === "") {
 															setSkillAttributes({
 																...skillAttributes,
-																[skill.name]: {
-																	...skillAttributes[skill.name],
+																[skillKey]: {
+																	...skillAttributes[skillKey],
 																	otherBonus: "0",
 																},
 															})
 															e.target.value = "0"
+															saveCharacterSkills(characterSheetIdRef.current, {
+																skillNameId: skillKey,
+																otherBonus: 0,
+															})
 															return
 														}
 														e.target.value = inputValue.replace(/^0+(?=\d)/, "")
+														saveCharacterSkills(characterSheetIdRef.current, {
+															skillNameId: skillKey,
+															otherBonus: Number(e.target.value),
+														})
 													}}
 													onChange={(e) => {
 														setSkillAttributes({
 															...skillAttributes,
-															[skill.name]: {
-																...skillAttributes[skill.name],
+															[skillKey]: {
+																...skillAttributes[skillKey],
 																otherBonus: e.target.value,
 															},
 														})
 													}}
 													type="number"
-													value={skillAttributes[skill.name].otherBonus}
+													value={skillAttributes[skillKey].otherBonus}
 												/>
 											</div>
 										</td>
