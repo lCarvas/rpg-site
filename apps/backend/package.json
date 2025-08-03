@@ -2,8 +2,19 @@
 	"name": "backend",
 	"version": "1.0.0",
 	"scripts": {
-		"test": "echo \"Error: no test specified\" && exit 1",
-		"dev": "bun run --watch src/index.ts"
+		"build": "tsdown",
+		"check-types": "tsc -b",
+		"compile": "bun build --compile --minify --sourcemap --bytecode ./src/index.ts --outfile server",
+		"dev": "bun run --hot src/index.ts",
+		"start": "bun run dist/index.js",
+		"db:push": "prisma db push",
+		"db:studio": "prisma studio",
+		"db:generate": "prisma generate",
+		"db:migrate": "prisma migrate dev",
+		"db:start": "docker-compose up -d",
+		"db:watch": "docker-compose up",
+		"db:stop": "docker-compose stop",
+		"db:down": "docker-compose down"
 	},
 	"prisma": {
 		"seed": "bun run scripts/seed.ts"

@@ -1,7 +1,5 @@
 {
 	"name": "rpg-site-monorepo",
-	"module": "index.ts",
-	"type": "module",
 	"private": true,
 	"workspaces": [
 		"apps/*",
@@ -9,10 +7,28 @@
 	],
 	"devDependencies": {
 		"@biomejs/biome": "2.1.2",
-		"@types/bun": "latest"
+		"@types/bun": "latest",
+		"turbo": "^2.5.5"
 	},
 	"peerDependencies": {
 		"typescript": "^5"
+	},
+	"scripts": {
+		"check": "biome check --write .",
+		"dev": "turbo dev",
+		"build": "turbo build",
+		"check-types": "turbo check-types",
+		"dev:native": "turbo -F native dev",
+		"dev:web": "turbo -F frontend dev",
+		"dev:server": "turbo -F backend dev",
+		"db:push": "turbo -F backend db:push",
+		"db:studio": "turbo -F backend db:studio",
+		"db:generate": "turbo -F backend db:generate",
+		"db:migrate": "turbo -F backend db:migrate",
+		"db:start": "turbo -F backend db:start",
+		"db:watch": "turbo -F backend db:watch",
+		"db:stop": "turbo -F backend db:stop",
+		"db:down": "turbo -F backend db:down"
 	},
 	"trustedDependencies": [
 		"@prisma/client",
@@ -20,5 +36,6 @@
 		"@tailwindcss/oxide",
 		"prisma",
 		"sharp"
-	]
+	],
+	"packageManager": "bun@1.2.19"
 }
