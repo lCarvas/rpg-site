@@ -420,16 +420,16 @@ export default function Characters() {
 									const classAsKey = e.target.value as keyof classesObjectTypes
 									const newStats = {
 										maxHp: (
-											classes[classAsKey].initialPv +
+											classes[classAsKey].initialHp +
 											globalStats.vig +
 											(globalStats.nex - 1) *
-												(globalStats.vig + classes[classAsKey].levelPv)
+												(globalStats.vig + classes[classAsKey].levelHp)
 										).toString(),
 										currentHp: Math.max(
 											0,
 											Number(stats.currentHp) +
 												(globalStats.nex - prevNexValue) *
-													(globalStats.vig + classes[classAsKey].levelPv),
+													(globalStats.vig + classes[classAsKey].levelHp),
 										).toString(),
 										maxSan: (
 											classes[classAsKey].initialSan +
@@ -503,16 +503,16 @@ export default function Characters() {
 
 									const newStats = {
 										maxHp: (
-											classes[classAsKey].initialPv +
+											classes[classAsKey].initialHp +
 											globalStats.vig +
 											(newNexValue - 1) *
-												(globalStats.vig + classes[classAsKey].levelPv)
+												(globalStats.vig + classes[classAsKey].levelHp)
 										).toString(),
 										currentHp: Math.max(
 											0,
 											Number(stats.currentHp) +
 												(newNexValue - prevNexValue) *
-													(globalStats.vig + classes[classAsKey].levelPv),
+													(globalStats.vig + classes[classAsKey].levelHp),
 										).toString(),
 										maxSan: (
 											classes[classAsKey].initialSan +

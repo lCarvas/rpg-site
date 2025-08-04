@@ -77,3 +77,13 @@ export async function createCharacter(body: {
 	redirect(`/character/${id}`)
 }
 
+export async function deleteCharacter(
+	id: string | number,
+	body: { userId: string },
+) {
+	const { data, error } = await api.user.sheets({ id: id }).delete.post(body)
+	if (error) {
+		throw error.status
+	}
+	return data
+}
