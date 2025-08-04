@@ -34,9 +34,9 @@ export const userRoutes = new Elysia({ prefix: "/user", tags: ["User"] })
 	)
 	.post(
 		"/sheets",
-		async ({ body }) => {
+		async ({ body, status }) => {
 			try {
-				await prisma.characterSheet.create({
+				const newCharacter = await prisma.characterSheet.create({
 					data: {
 						userId: body.userId,
 						str: body.str,
@@ -46,24 +46,24 @@ export const userRoutes = new Elysia({ prefix: "/user", tags: ["User"] })
 						pre: body.pre,
 						class: body.class,
 						background: body.background,
-						nex: body.nex,
-						level: body.level,
-						turnPe: body.turnPe,
-						movement: body.movement,
-						currentHp: body.currentHp,
-						maxHp: body.maxHp,
-						currentSan: body.currentSan,
-						maxSan: body.maxSan,
-						currentPe: body.currentPe,
-						maxPe: body.maxPe,
-						currentPd: body.currentPd,
-						maxPd: body.maxPd,
-						equipDef: body.equipDef,
-						otherDef: body.otherDef,
-						blockDr: body.blockDr,
-						dodge: body.dodge,
-						armor: body.armor,
-						resistances: body.resistances,
+						nex: body?.nex ?? 0,
+						level: body?.level ?? 1,
+						turnPe: body?.level ?? 1,
+						movement: 9,
+						currentHp: body.initialHp,
+						maxHp: body.initialHp,
+						currentSan: body.initialSan,
+						maxSan: body.initialSan,
+						currentPe: body.initialPe,
+						maxPe: body.initialPe,
+						currentPd: body.initialPd,
+						maxPd: body.initialPd,
+						equipDef: 0,
+						otherDef: 0,
+						blockDr: body.skills.includes("fortitude") ? 5 : 0,
+						dodge: body.skills.includes("reflexos") ? 5 : 0,
+						armor: "",
+						resistances: "",
 						proficiencies: body.proficiencies,
 						skills: {
 							create: await Promise.all(
@@ -78,9 +78,7 @@ export const userRoutes = new Elysia({ prefix: "/user", tags: ["User"] })
 										throw new Error(`Skill ${skill.name} not found`)
 									}
 
-									const skillTrainingOverride = body.skills.find(
-										(s) => s === skillKey,
-									)
+									const skillTrainingOverride = body.skills.includes(skillKey)
 
 									return {
 										skillId: skillId.id,
@@ -93,43 +91,64 @@ export const userRoutes = new Elysia({ prefix: "/user", tags: ["User"] })
 						},
 					},
 				})
+				return newCharacter.id
 			} catch (e) {
 				console.error(`Error creating character sheet: ${e}`)
+				return status(400, "")
 			}
 		},
 		{
 			body: t.Object({
 				userId: t.String(),
-				str: t.Number(),
-				agi: t.Number(),
-				int: t.Number(),
-				vig: t.Number(),
-				pre: t.Number(),
+				str: t.Numeric(),
+				agi: t.Numeric(),
+				int: t.Numeric(),
+				vig: t.Numeric(),
+				pre: t.Numeric(),
 				class: t.String(),
 				background: t.String(),
-				nex: t.Number(),
-				level: t.Number(),
-				turnPe: t.Number(),
-				movement: t.Number(),
-				currentHp: t.Number(),
-				maxHp: t.Number(),
-				currentSan: t.Number(),
-				maxSan: t.Number(),
-				currentPe: t.Number(),
-				maxPe: t.Number(),
-				currentPd: t.Number(),
-				maxPd: t.Number(),
-				equipDef: t.Number(),
-				otherDef: t.Number(),
-				blockDr: t.Number(),
-				dodge: t.Number(),
-				armor: t.String(),
-				resistances: t.String(),
+				nex: t.Optional(t.Number()),
+				level: t.Optional(t.Number()),
+				initialHp: t.Number(),
+				initialSan: t.Number(),
+				initialPe: t.Number(),
+				initialPd: t.Number(),
 				proficiencies: t.String(),
 				skills: t.Array(t.String()),
 			}),
+			response: {
+				200: t.Number(),
+				400: t.String(),
+			},
 			detail: {
 				summary: "Create a new character sheet",
+			},
+		},
+	)
+	.post(
+		"/sheets/:id/delete",
+		async ({ params: { id }, body, status }) => {
+			const characterSheet = await prisma.characterSheet.findFirst({
+				where: {
+					id: id,
+				},
+			})
+
+			if (characterSheet?.userId !== body.userId) {
+				return status(403, "Forbidden")
+			}
+
+			await prisma.characterSheet.delete({
+				where: {
+					id: id,
+				},
+			})
+		},
+		{
+			params: t.Object({ id: t.Numeric() }),
+			body: t.Object({ userId: t.String() }),
+			response: {
+				403: t.String(),
 			},
 		},
 	)

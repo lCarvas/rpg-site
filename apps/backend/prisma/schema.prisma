@@ -64,6 +64,7 @@ model CharacterSheet {
   resistances   String
   proficiencies String
   skills        CharacterSkills[]
+  abilities     Abilities[]
 }
 
 model Skills {
@@ -83,6 +84,14 @@ model CharacterSkills {
   otherBonus    Int
 
   @@unique([characterId, skillId])
+}
+
+model Abilities {
+  id               Int            @id @default(autoincrement())
+  name             String
+  description      String
+  character        CharacterSheet @relation(fields: [characterSheetId], references: [id], onDelete: Cascade)
+  characterSheetId Int
 }
 
 model Session {

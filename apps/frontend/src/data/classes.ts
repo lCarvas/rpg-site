@@ -15,12 +15,12 @@ export interface classesObjectTypes {
 
 export const classes = {
 	survivor: {
-		name: "Mundane",
+		name: "Survivor",
 		shortDescription:
 			"You're a normal person, living a normal life. Of course, considering you're a character in Ordem Paranormal RPG, this normality won't last long...",
 		description: "",
-		initialPv: 8,
-		levelPv: 0,
+		initialHp: 8,
+		levelHp: 0,
 		initialPe: 1,
 		levelPe: 0,
 		initialSan: 8,
@@ -46,8 +46,8 @@ export const classes = {
 			"Trained to fight with all types of weapons, and with the strength and courage to face dangers head on, you are the type of agent who prefers more direct approaches and tends to shoot first and ask questions later.",
 		description:
 			"<p>From the mercenary specializing in firearms to the expert with swords, combatants present a huge range of special abilities and techniques that enhance their efficiency on the battlefield, making them essential members of any extermination mission.</p><p> In addition to training their body, the combatant is also adept at leading their allies in battle and taking care of their combat equipment, always prepared to take the front line when things get tough.</p><p><span>Famous Combatants: </span>Mister Veríssimo, Joui Jouki, Gal, Antônio “Balu” Pontevedra, Tristan Monteiro & Ryder Staten.</p>",
-		initialPv: 20,
-		levelPv: 4,
+		initialHp: 20,
+		levelHp: 4,
 		initialPe: 2,
 		levelPe: 2,
 		initialSan: 12,
@@ -339,8 +339,8 @@ export const classes = {
 			"An agent who relies more on cleverness rather than brute force. A specialist uses technical knowledge, quick thinking or even cunning to solve mysteries and face the paranormal.",
 		description:
 			"<p>Scientists, inventors, researchers and technicians of various types are examples of specialists, who are as varied as the areas of knowledge and technology. Some still prefer to study social engineering and become excellent undercover spies, or even study special combat techniques such as martial arts and long-range shooting, combining technical knowledge and skill.</p><p>What unites all specialists is their incredible ability to learn and improvise using their intellect and advanced knowledge, which can get the entire group out of the most diverse types of trouble.</p><p><span>Famous Specialists: </span>Aaron, Arthur Cervero, Rubens Naluti, Elizabeth Webber, Samuel Norte, Chizue Akechi.</p>",
-		initialPv: 16,
-		levelPv: 3,
+		initialHp: 16,
+		levelHp: 3,
 		initialPe: 3,
 		levelPe: 3,
 		initialSan: 16,
@@ -612,8 +612,8 @@ export const classes = {
 			"The Other Side is mysterious, dangerous and, in some ways, captivating. Many scholars of the entities get lost in their dark realms in search of power, but there are those who aim to understand and master the paranormal mysteries to use them to combat the Other Side itself. This type of agent is not only knowledgeable about the occult, but also has a talent for connecting with paranormal elements.",
 		description:
 			"<p>Contrary to popular belief, occultists are not intrinsically evil. It would be like saying that the scientist who invented gunpowder is guilty of the murderer who fired the revolver. For the Order, the Paranormal is a force that can be used for the most diverse purposes, according to the intention of its user.</p><p>Occultists apply their academic knowledge and their abilities to conjure rituals in missions to investigate and combat the Paranormal in all its forms, especially when conventional ammunition is not enough to handle the task.</p><p><span>Famous Occultists:</span> Agatha Volkomenn, Dante, Arnaldo Fritz, Marc Menet, Kian.</p>",
-		initialPv: 12,
-		levelPv: 2,
+		initialHp: 12,
+		levelHp: 2,
 		initialPe: 4,
 		levelPe: 4,
 		initialSan: 20,

@@ -1,4 +1,5 @@
 import { api } from "@libs"
+import { redirect } from "next/navigation"
 
 export async function getCharacterSheet(id: string | number) {
 	const { data: characterSheet, error } = await api.user
@@ -50,3 +51,29 @@ export async function getUserCharacterSheets(userId: string) {
 	}
 	return characterSheets
 }
+
+export async function createCharacter(body: {
+	userId: string
+	str: number
+	agi: number
+	int: number
+	vig: number
+	pre: number
+	class: string
+	background: string
+	nex?: number
+	level?: number
+	initialHp: number
+	initialSan: number
+	initialPe: number
+	initialPd: number
+	proficiencies: string
+	skills: string[]
+}) {
+	const { data: id, error } = await api.user.sheets.post(body)
+	if (error) {
+		throw error.status
+	}
+	redirect(`/character/${id}`)
+}
+

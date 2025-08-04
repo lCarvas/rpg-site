@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
-import { getUserCharacterSheets } from "@/dal/dal"
+import { deleteCharacter, getUserCharacterSheets } from "@/dal/dal"
 import { authClient } from "@/lib/auth-client"
 
 export default function CharactersPage() {
@@ -28,6 +28,15 @@ export default function CharactersPage() {
 	return (
 		<div className="flex flex-col gap-4">
 			<h1 className="font-bold text-2xl">Your Characters</h1>
+			<div>
+				<Button
+					onClick={() => {
+						router.push("/character/create")
+					}}
+				>
+					New Character
+				</Button>
+			</div>
 			{isPending || userSheets === null ? (
 				<p>Loading your characters...</p>
 			) : userSheets.length > 0 ? (
