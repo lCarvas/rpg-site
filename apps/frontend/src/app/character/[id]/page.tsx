@@ -8,7 +8,7 @@ import plusIcon from "public/icons/circle-plus-solid.svg"
 import { useEffect, useRef, useState } from "react"
 import { Toaster, toast } from "sonner"
 import { RollSkillButton } from "@/components/dice-component"
-import { StatBar } from "@/components/statBar"
+import { StatBar } from "@/components/stat-bar"
 import {
 	getCharacterSheet,
 	saveCharacterChanges,

@@ -66,6 +66,8 @@ export default function CharacterCreateComponent() {
 						disabled={!canCreateCharacter}
 						onClick={() => {
 							const classAsKey = selectedClass as keyof typeof classes
+							const backgroundAsKey =
+								selectedBackground as keyof typeof backgrounds
 							createCharacter({
 								userId: userId as string,
 								str: Number(attributeValues.str),
@@ -83,9 +85,10 @@ export default function CharacterCreateComponent() {
 								initialPd:
 									classes[classAsKey].initialPd + Number(attributeValues.pre),
 								proficiencies: classes[classAsKey].proficiencies,
-								skills:
-									backgrounds[selectedBackground as keyof typeof backgrounds]
-										.skills,
+								skills: backgrounds[backgroundAsKey].skills,
+								abilities: {
+									...backgrounds[backgroundAsKey].power,
+								},
 							})
 						}}
 					>

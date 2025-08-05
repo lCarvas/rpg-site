@@ -89,6 +89,9 @@ export const userRoutes = new Elysia({ prefix: "/user", tags: ["User"] })
 								}),
 							),
 						},
+						abilities: {
+							create: body.abilities,
+						},
 					},
 				})
 				return newCharacter.id
@@ -115,6 +118,10 @@ export const userRoutes = new Elysia({ prefix: "/user", tags: ["User"] })
 				initialPd: t.Number(),
 				proficiencies: t.String(),
 				skills: t.Array(t.String()),
+				abilities: t.Object({
+					name: t.String(),
+					description: t.String(),
+				}),
 			}),
 			response: {
 				200: t.Number(),

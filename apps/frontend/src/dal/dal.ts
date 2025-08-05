@@ -69,6 +69,10 @@ export async function createCharacter(body: {
 	initialPd: number
 	proficiencies: string
 	skills: string[]
+	abilities: {
+		name: string
+		description: string
+	}
 }) {
 	const { data: id, error } = await api.user.sheets.post(body)
 	if (error) {
