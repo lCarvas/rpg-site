@@ -1,3 +1,4 @@
+import type { ReadonlyHeaders } from "next/dist/server/web/spec-extension/adapters/headers"
 import { api } from "@libs"
 import { redirect } from "next/navigation"
 
@@ -86,6 +87,43 @@ export async function deleteCharacter(
 	body: { userId: string },
 ) {
 	const { data, error } = await api.user.sheets({ id: id }).delete.post(body)
+	if (error) {
+		throw error.status
+	}
+	return data
+}
+
+export async function getSession(headers: Promise<ReadonlyHeaders>) {
+	const headersList = await headers
+	const cookie = await headersList.get("cookie")
+	return await fetch("http://localhost:3000/api/auth/get-session", {
+		headers: {
+			"Content-Type": "application/json",
+			cookie: cookie ?? "",
+		},
+	}).then((res) => res.json())
+}
+
+export async function addAbility(
+	id: string | number,
+	body: { name: string; description: string },
+) {
+	const { data, error } = await api.user
+		.sheets({ id: id })
+		.abilities.add.post(body)
+	if (error) {
+		throw error.status
+	}
+	return data
+}
+
+export async function removeAbility(
+	id: string | number,
+	body: { abilityId: number },
+) {
+	const { data, error } = await api.user
+		.sheets({ id: id })
+		.abilities.delete.delete(body)
 	if (error) {
 		throw error.status
 	}

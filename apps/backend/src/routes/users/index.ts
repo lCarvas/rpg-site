@@ -7,6 +7,27 @@ import { prisma } from "@api/lib/prisma-client"
 import { skills } from "@frontend/data/skills"
 import { Elysia, type Static, t } from "elysia"
 
+const characterSheetResponseTypeBox = t.Composite([
+	CharacterSheetPlain,
+	t.Object({
+		skills: t.Array(
+			t.Object({
+				skill: t.Object({
+					name: t.String(),
+				}),
+				attribute: t.String({ maxLength: 3 }),
+				trainingBonus: t.Number(),
+				otherBonus: t.Number(),
+			}),
+		),
+	}),
+	t.Object({
+		abilities: t.Array(
+			t.Object({ id: t.Number(), name: t.String(), description: t.String() }),
+		),
+	}),
+])
+
 export const userRoutes = new Elysia({ prefix: "/user", tags: ["User"] })
 	.get(
 		"/:id/sheets",
@@ -181,6 +202,9 @@ export const userRoutes = new Elysia({ prefix: "/user", tags: ["User"] })
 							otherBonus: true,
 						},
 					},
+					abilities: {
+						select: { id: true, name: true, description: true },
+					},
 				},
 			})
 
@@ -191,21 +215,7 @@ export const userRoutes = new Elysia({ prefix: "/user", tags: ["User"] })
 				id: t.Numeric(),
 			}),
 			response: {
-				200: t.Composite([
-					CharacterSheetPlain,
-					t.Object({
-						skills: t.Array(
-							t.Object({
-								skill: t.Object({
-									name: t.String(),
-								}),
-								attribute: t.String({ maxLength: 3 }),
-								trainingBonus: t.Number(),
-								otherBonus: t.Number(),
-							}),
-						),
-					}),
-				]),
+				200: characterSheetResponseTypeBox,
 				404: t.String(),
 			},
 			detail: {
@@ -266,22 +276,42 @@ export const userRoutes = new Elysia({ prefix: "/user", tags: ["User"] })
 			]),
 		},
 	)
-
-const characterSheetResponseTypeBox = t.Composite([
-	CharacterSheetPlain,
-	t.Object({
-		skills: t.Array(
-			t.Object({
-				skill: t.Object({
-					name: t.String(),
-				}),
-				attribute: t.String({ maxLength: 3 }),
-				trainingBonus: t.Number(),
-				otherBonus: t.Number(),
+	.patch("/sheets/:id/abilities/update", () => {})
+	.post(
+		"/sheets/:id/abilities/add",
+		async ({ params: { id }, body }) => {
+			const newAbility = await prisma.abilities.create({
+				data: {
+					characterSheetId: id,
+					name: body.name,
+					description: body.description,
+				},
+			})
+			return newAbility.id
+		},
+		{
+			params: t.Object({ id: t.Numeric() }),
+			body: t.Object({
+				name: t.String(),
+				description: t.String(),
 			}),
-		),
-	}),
-])
+		},
+	)
+	.delete(
+		"/sheets/:id/abilities/delete",
+		async ({ params: { id }, body }) => {
+			await prisma.abilities.delete({
+				where: {
+					characterSheetId: id,
+					id: body.abilityId,
+				},
+			})
+		},
+		{
+			params: t.Object({ id: t.Numeric() }),
+			body: t.Object({ abilityId: t.Number() }),
+		},
+	)
 
 export type CharacterSheetResponseType = Static<
 	typeof characterSheetResponseTypeBox

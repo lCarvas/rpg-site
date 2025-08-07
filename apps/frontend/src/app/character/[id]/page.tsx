@@ -1,6 +1,7 @@
 "use client"
 
 import type { CharacterSheetResponseType } from "@api/routes/users"
+import { Plus } from "lucide-react"
 import Image from "next/image"
 import { useParams } from "next/navigation"
 import minusIcon from "public/icons/circle-minus-solid.svg"
@@ -10,10 +11,30 @@ import { Toaster, toast } from "sonner"
 import { RollSkillButton } from "@/components/dice-component"
 import { StatBar } from "@/components/stat-bar"
 import {
+	Accordion,
+	AccordionContent,
+	AccordionItem,
+	AccordionTrigger,
+} from "@/components/ui/accordion"
+import { Button } from "@/components/ui/button"
+import {
+	Dialog,
+	DialogContent,
+	DialogHeader,
+	DialogOverlay,
+	DialogTitle,
+	DialogTrigger,
+} from "@/components/ui/dialog"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import {
+	addAbility,
 	getCharacterSheet,
+	removeAbility,
 	saveCharacterChanges,
 	saveCharacterSkills,
 } from "@/dal/dal"
+import { paranormalPowers } from "@/data/abilities"
+import { backgrounds } from "@/data/backgrounds"
 import { classes, type classesObjectTypes } from "@/data/classes"
 import { skills } from "@/data/skills"
 import { rollDice, rollDiceNotation } from "@/utils/dice"
@@ -31,7 +52,9 @@ export interface globalStatTypes {
 
 interface skillObjectTypes {
 	[key: string]: {
-		[key: string]: string
+		attribute: string
+		trainingBonus: string | number
+		otherBonus: string | number
 	}
 }
 
@@ -53,24 +76,26 @@ const trainingColorMap: Record<string, string> = {
 	"15": "text-yellow-700 border-yellow-700",
 }
 
-export default function Characters() {
+export default function CharacterSheet() {
 	const characterSheetIdRef = useRef<string>(useParams<{ id: string }>().id)
 	const [characterSheetDataObject, setCharacterSheetDataObject] =
 		useState<CharacterSheetResponseType | null>(null)
 	const [globalStats, setGlobalStats] = useState<globalStatTypes | null>(null)
-	const [defensiveStats, setDefensiveValues] = useState<Record<
-		string,
-		string
-	> | null>(null)
+	const [defensiveStats, setDefensiveStats] = useState<{
+		equipDef: string | number
+		otherDef: string | number
+		dodge: string | number
+		blockDr: string | number
+	} | null>(null)
 	const [skillAttributes, setSkillAttributes] =
 		useState<skillObjectTypes | null>(
 			Object.fromEntries(
 				Object.entries(skills).map(([key, value]) => [
 					key,
-					{ attribute: value.attribute, trainingBonus: "0", otherBonus: "0" },
+					{ attribute: value.attribute, trainingBonus: 0, otherBonus: 0 },
 				]),
 			),
-		) //old state, get from commits
+		)
 	const [stats, setStats] = useState<StatsType | null>(null)
 
 	useEffect(() => {
@@ -87,11 +112,11 @@ export default function Characters() {
 				class: data.class,
 				background: data.background,
 			})
-			setDefensiveValues({
-				equipDef: data.equipDef.toString(),
-				otherDef: data.otherDef.toString(),
-				dodge: data.dodge.toString(),
-				blockDr: data.blockDr.toString(),
+			setDefensiveStats({
+				equipDef: data.equipDef,
+				otherDef: data.otherDef,
+				dodge: data.dodge,
+				blockDr: data.blockDr,
 			})
 			setSkillAttributes((prevState) => ({
 				...prevState,
@@ -100,8 +125,8 @@ export default function Characters() {
 						skill.skill.name,
 						{
 							attribute: skill.attribute,
-							trainingBonus: skill.trainingBonus.toString(),
-							otherBonus: skill.otherBonus.toString(),
+							trainingBonus: skill.trainingBonus,
+							otherBonus: skill.otherBonus,
 						},
 					]),
 				),
@@ -121,6 +146,8 @@ export default function Characters() {
 	}, [])
 
 	const prevNexRef = useRef(0)
+	const prevFortitudeRef = useRef(0)
+	const prevReflexesRef = useRef(0)
 
 	if (
 		!characterSheetDataObject ||
@@ -137,6 +164,18 @@ export default function Characters() {
 	}
 
 	prevNexRef.current = globalStats.nex
+	prevFortitudeRef.current =
+		Number(skillAttributes.fortitude.trainingBonus) +
+		Number(skillAttributes.fortitude.otherBonus)
+	prevReflexesRef.current =
+		Number(skillAttributes.reflexos.trainingBonus) +
+		Number(skillAttributes.reflexos.otherBonus)
+
+	const defenseValue =
+		10 +
+		globalStats.agi +
+		Number(defensiveStats.equipDef) +
+		Number(defensiveStats.otherDef)
 
 	return (
 		<div className="mx-auto min-h-[90vh] max-w-[1280px]">
@@ -233,7 +272,7 @@ export default function Characters() {
 									agi: globalStats.agi + 1,
 								})
 								saveCharacterChanges(characterSheetIdRef.current, {
-									agi: globalStats.str + 1,
+									agi: globalStats.agi + 1,
 								})
 							}}
 							type="button"
@@ -613,7 +652,7 @@ export default function Characters() {
 							statsState={stats}
 						/>
 					</div>
-					{/* <div className="roberto">
+					<div>
 						Defense: {defenseValue}
 						<p>
 							Equip:{" "}
@@ -621,41 +660,48 @@ export default function Characters() {
 								className="w-5 border-b-1 p-0 text-center"
 								inputMode="numeric"
 								onBlur={(e) => {
-									if (globalStats.equipDef === 0) {
-										setRawStatInputValue({
-											...rawStatInputValues,
-											equipDef: "0",
-										})
-									}
-									setGlobalStats({
-										...globalStats,
-										equipDef: Math.max(0, Number(e.target.value)),
+									setDefensiveStats({
+										...defensiveStats,
+										equipDef: Number(e.target.value),
 									})
+									saveCharacterChanges(characterSheetIdRef.current, {
+										equipDef: Number(e.target.value),
+									})
+									e.target.value = e.target.value.replace(/^0+(?=\d)/, "")
 								}}
 								onChange={(e) => {
-									setRawStatInputValue({
-										...rawStatInputValues,
+									setDefensiveStats({
+										...defensiveStats,
 										equipDef: e.target.value,
 									})
 								}}
 								type="number"
-								value={rawStatInputValues.equipDef}
+								value={defensiveStats.equipDef}
 							/>
 						</p>
 						<p>
 							Other:{" "}
 							<input
 								className="w-5 border-b-1 p-0 text-center"
-								defaultValue={globalStats.otherDef}
 								inputMode="numeric"
+								onBlur={(e) => {
+									setDefensiveStats({
+										...defensiveStats,
+										otherDef: Number(e.target.value),
+									})
+									saveCharacterChanges(characterSheetIdRef.current, {
+										otherDef: Number(e.target.value),
+									})
+									e.target.value = e.target.value.replace(/^0+(?=\d)/, "")
+								}}
 								onChange={(e) => {
-									const value = Number(e.target.value)
-									setGlobalStats({
-										...globalStats,
-										otherDef: value,
+									setDefensiveStats({
+										...defensiveStats,
+										otherDef: e.target.value,
 									})
 								}}
 								type="number"
+								value={defensiveStats.otherDef}
 							/>
 						</p>
 						<p>
@@ -664,41 +710,51 @@ export default function Characters() {
 								className="w-5 border-b-1 text-center"
 								inputMode="numeric"
 								onBlur={(e) => {
-									if (globalStats.dodge === 0) {
-										setRawStatInputValue({
-											...rawStatInputValues,
-											dodge: "0",
-										})
-									}
-									setGlobalStats({
-										...globalStats,
+									setDefensiveStats({
+										...defensiveStats,
 										dodge: Number(e.target.value),
 									})
+									saveCharacterChanges(characterSheetIdRef.current, {
+										dodge: Number(e.target.value),
+									})
+									e.target.value = e.target.value.replace(/^0+(?=\d)/, "")
 								}}
 								onChange={(e) => {
-									setRawStatInputValue({
-										...rawStatInputValues,
+									setDefensiveStats({
+										...defensiveStats,
 										dodge: e.target.value,
 									})
 								}}
 								type="number"
-								value={rawStatInputValues.dodge}
+								value={defensiveStats.dodge}
 							/>
 						</p>
 						<p>
 							Block DR:{" "}
 							<input
 								className="w-5 border-b-1 text-center"
-								defaultValue={
-									skillAttributes.Fortitude.training +
-									skillAttributes.Fortitude.otherBonus
-								}
 								inputMode="numeric"
+								onBlur={(e) => {
+									setDefensiveStats({
+										...defensiveStats,
+										blockDr: Number(e.target.value),
+									})
+									saveCharacterChanges(characterSheetIdRef.current, {
+										blockDr: Number(e.target.value),
+									})
+									e.target.value = e.target.value.replace(/^0+(?=\d)/, "")
+								}}
+								onChange={(e) => {
+									setDefensiveStats({
+										...defensiveStats,
+										blockDr: e.target.value,
+									})
+								}}
 								type="number"
+								value={defensiveStats.blockDr}
 							/>
 						</p>
-						<p>{globalStats.equipDef}</p>
-					</div> */}
+					</div>
 				</div>
 				<div>
 					<table className="table-fixed border-separate border-spacing-[3px]">
@@ -806,6 +862,32 @@ export default function Characters() {
 														skillNameId: skillKey,
 														trainingBonus: Number(e.target.value),
 													})
+													if (skillKey === "fortitude") {
+														const newValue =
+															Number(defensiveStats.blockDr) +
+															Number(e.target.value) -
+															Number(skillAttributes.fortitude.trainingBonus)
+														setDefensiveStats({
+															...defensiveStats,
+															blockDr: newValue,
+														})
+														saveCharacterChanges(characterSheetIdRef.current, {
+															blockDr: newValue,
+														})
+													}
+													if (skillKey === "reflexos") {
+														const newValue =
+															Number(defensiveStats.dodge) +
+															Number(e.target.value) -
+															Number(skillAttributes.reflexos.trainingBonus)
+														setDefensiveStats({
+															...defensiveStats,
+															dodge: newValue,
+														})
+														saveCharacterChanges(characterSheetIdRef.current, {
+															newValue,
+														})
+													}
 												}}
 												value={skillAttributes[skillKey].trainingBonus}
 											>
@@ -829,28 +911,37 @@ export default function Characters() {
 													className="w-9 border-white border-b-1 text-center"
 													inputMode="numeric"
 													onBlur={(e) => {
-														const inputValue = e.target.value
-
-														if (inputValue === "") {
-															setSkillAttributes({
-																...skillAttributes,
-																[skillKey]: {
-																	...skillAttributes[skillKey],
-																	otherBonus: "0",
-																},
-															})
-															e.target.value = "0"
-															saveCharacterSkills(characterSheetIdRef.current, {
-																skillNameId: skillKey,
-																otherBonus: 0,
-															})
-															return
-														}
-														e.target.value = inputValue.replace(/^0+(?=\d)/, "")
+														setSkillAttributes({
+															...skillAttributes,
+															[skillKey]: {
+																...skillAttributes[skillKey],
+																otherBonus: Number(e.target.value),
+															},
+														})
 														saveCharacterSkills(characterSheetIdRef.current, {
 															skillNameId: skillKey,
 															otherBonus: Number(e.target.value),
 														})
+														e.target.value = e.target.value.replace(
+															/^0+(?=\d)/,
+															"",
+														)
+														if (skillKey === "fortitude") {
+															saveCharacterChanges(
+																characterSheetIdRef.current,
+																{
+																	blockDr: defensiveStats.blockDr,
+																},
+															)
+														}
+														if (skillKey === "reflexos") {
+															saveCharacterChanges(
+																characterSheetIdRef.current,
+																{
+																	dodge: defensiveStats.dodge,
+																},
+															)
+														}
 													}}
 													onChange={(e) => {
 														setSkillAttributes({
@@ -860,6 +951,26 @@ export default function Characters() {
 																otherBonus: e.target.value,
 															},
 														})
+														if (skillKey === "fortitude") {
+															const newValue =
+																Number(defensiveStats.blockDr) +
+																Number(e.target.value) -
+																Number(skillAttributes.fortitude.otherBonus)
+															setDefensiveStats({
+																...defensiveStats,
+																blockDr: newValue,
+															})
+														}
+														if (skillKey === "reflexos") {
+															const newValue =
+																Number(defensiveStats.dodge) +
+																Number(e.target.value) -
+																Number(skillAttributes.reflexos.otherBonus)
+															setDefensiveStats({
+																...defensiveStats,
+																dodge: newValue,
+															})
+														}
 													}}
 													type="number"
 													value={skillAttributes[skillKey].otherBonus}
@@ -875,18 +986,370 @@ export default function Characters() {
 						+ Overburden penalty. * Only if trained.
 					</p>
 				</div>
-				<div className="w-125">
-					<input
-						className="border-white border-b-2"
-						onKeyDown={(e) => {
-							if (e.key === "Enter") {
-								toast(`${rollDiceNotation(e.currentTarget.value)}`)
-								e.currentTarget.value = ""
-							}
-						}}
-						placeholder="Roll Dice"
-						type="text"
-					/>
+				<div className="w-125 px-2">
+					<Tabs defaultValue="combat">
+						<TabsList className="flex w-[100%] items-start bg-background">
+							<TabsTrigger value="combat">COMBAT</TabsTrigger>
+							<TabsTrigger value="abilities">ABILITIES</TabsTrigger>
+							<TabsTrigger value="rituals">RITUALS</TabsTrigger>
+							<TabsTrigger value="inventory">INVENTORY</TabsTrigger>
+							<TabsTrigger value="description">DESCRIPTION</TabsTrigger>
+						</TabsList>
+						<TabsContent value="combat">
+							<input
+								className="w-[98%] border-white border-b-2"
+								onKeyDown={(e) => {
+									if (e.key === "Enter") {
+										toast(`${rollDiceNotation(e.currentTarget.value)}`)
+										e.currentTarget.value = ""
+									}
+								}}
+								placeholder="Roll Dice"
+								type="text"
+							/>
+						</TabsContent>
+						<TabsContent className="flex flex-col gap-3" value="abilities">
+							<Dialog>
+								<DialogTrigger asChild>
+									<Button>Add Ability</Button>
+								</DialogTrigger>
+								<DialogOverlay>
+									<DialogContent
+										aria-describedby={undefined}
+										className="scrollbar-hidden max-h-[500px] min-w-240 overflow-y-auto"
+									>
+										<DialogHeader>
+											<DialogTitle>Add Ability</DialogTitle>
+										</DialogHeader>
+										<Tabs>
+											<TabsList>
+												<TabsTrigger value="combatant">Combatant</TabsTrigger>
+												<TabsTrigger value="specialist">Specialist</TabsTrigger>
+												<TabsTrigger value="occultist">Occultist</TabsTrigger>
+												<TabsTrigger value="backgrounds">
+													Backgrounds
+												</TabsTrigger>
+												<TabsTrigger value="paranormal">
+													Paranormal Powers
+												</TabsTrigger>
+											</TabsList>
+											<TabsContent value="combatant">
+												<Accordion
+													className="rounded-md bg-white/5 px-2"
+													type="multiple"
+												>
+													{[
+														...classes.combatant.powers,
+														...classes.combatant.abilities,
+													]
+														.sort((a, b) => a.name.localeCompare(b.name))
+														.map((power) => {
+															return (
+																<AccordionItem
+																	key={power.name}
+																	value={power.name}
+																>
+																	<AccordionTrigger asChild>
+																		<div>
+																			<p>{power.name}</p>
+																			<Button
+																				className="hover:cursor-pointer"
+																				onClick={async () => {
+																					const newAbility = await addAbility(
+																						characterSheetIdRef.current,
+																						{
+																							name: power.name,
+																							description: power.description,
+																						},
+																					)
+																					setCharacterSheetDataObject({
+																						...characterSheetDataObject,
+																						abilities: [
+																							...characterSheetDataObject.abilities,
+																							{
+																								id: newAbility,
+																								name: power.name,
+																								description: power.description,
+																							},
+																						],
+																					})
+																				}}
+																			>
+																				<Plus />
+																			</Button>
+																		</div>
+																	</AccordionTrigger>
+																	<AccordionContent asChild>
+																		{power.description}
+																	</AccordionContent>
+																</AccordionItem>
+															)
+														})}
+												</Accordion>
+											</TabsContent>
+											<TabsContent value="specialist">
+												<Accordion
+													className="rounded-md bg-white/5 px-2"
+													type="multiple"
+												>
+													{[
+														...classes.specialist.powers,
+														...classes.specialist.abilities,
+													]
+														.sort((a, b) => a.name.localeCompare(b.name))
+														.map((power) => {
+															return (
+																<AccordionItem
+																	key={power.name}
+																	value={power.name}
+																>
+																	<AccordionTrigger asChild>
+																		<div>
+																			<p>{power.name}</p>
+																			<Button
+																				className="hover:cursor-pointer"
+																				onClick={async () => {
+																					const newAbility = await addAbility(
+																						characterSheetIdRef.current,
+																						{
+																							name: power.name,
+																							description: power.description,
+																						},
+																					)
+																					setCharacterSheetDataObject({
+																						...characterSheetDataObject,
+																						abilities: [
+																							...characterSheetDataObject.abilities,
+																							{
+																								id: newAbility,
+																								name: power.name,
+																								description: power.description,
+																							},
+																						],
+																					})
+																				}}
+																			>
+																				<Plus />
+																			</Button>
+																		</div>
+																	</AccordionTrigger>
+																	<AccordionContent asChild>
+																		{power.description}
+																	</AccordionContent>
+																</AccordionItem>
+															)
+														})}
+												</Accordion>
+											</TabsContent>
+											<TabsContent value="occultist">
+												<Accordion
+													className="rounded-md bg-white/5 px-2"
+													type="multiple"
+												>
+													{[
+														...classes.occultist.powers,
+														...classes.occultist.abilities,
+													]
+														.sort((a, b) => a.name.localeCompare(b.name))
+														.map((power) => {
+															return (
+																<AccordionItem
+																	key={power.name}
+																	value={power.name}
+																>
+																	<AccordionTrigger asChild>
+																		<div>
+																			<p>{power.name}</p>
+																			<Button
+																				className="hover:cursor-pointer"
+																				onClick={async () => {
+																					const newAbility = await addAbility(
+																						characterSheetIdRef.current,
+																						{
+																							name: power.name,
+																							description: power.description,
+																						},
+																					)
+																					setCharacterSheetDataObject({
+																						...characterSheetDataObject,
+																						abilities: [
+																							...characterSheetDataObject.abilities,
+																							{
+																								id: newAbility,
+																								name: power.name,
+																								description: power.description,
+																							},
+																						],
+																					})
+																				}}
+																			>
+																				<Plus />
+																			</Button>
+																		</div>
+																	</AccordionTrigger>
+																	<AccordionContent asChild>
+																		{power.description}
+																	</AccordionContent>
+																</AccordionItem>
+															)
+														})}
+												</Accordion>
+											</TabsContent>
+											<TabsContent value="backgrounds">
+												<Accordion
+													className="rounded-md bg-white/5 px-2"
+													type="multiple"
+												>
+													{Object.values(backgrounds)
+														.sort((a, b) =>
+															a.power.name.localeCompare(b.power.name),
+														)
+														.map((background) => {
+															return (
+																<AccordionItem
+																	key={background.power.name}
+																	value={background.power.name}
+																>
+																	<AccordionTrigger asChild>
+																		<div>
+																			<p>{background.power.name}</p>
+																			<Button
+																				className="hover:cursor-pointer"
+																				onClick={async () => {
+																					const newAbility = await addAbility(
+																						characterSheetIdRef.current,
+																						{
+																							name: background.power.name,
+																							description:
+																								background.power.description,
+																						},
+																					)
+																					setCharacterSheetDataObject({
+																						...characterSheetDataObject,
+																						abilities: [
+																							...characterSheetDataObject.abilities,
+																							{
+																								id: newAbility,
+																								name: background.power.name,
+																								description:
+																									background.power.description,
+																							},
+																						],
+																					})
+																				}}
+																			>
+																				<Plus />
+																			</Button>
+																		</div>
+																	</AccordionTrigger>
+																	<AccordionContent asChild>
+																		{background.power.description}
+																	</AccordionContent>
+																</AccordionItem>
+															)
+														})}
+												</Accordion>
+											</TabsContent>
+											<TabsContent value="paranormal">
+												<Accordion
+													className="rounded-md bg-white/5 px-2"
+													type="multiple"
+												>
+													{paranormalPowers
+														.sort((a, b) => a.name.localeCompare(b.name))
+														.map((power) => (
+															<AccordionItem
+																key={power.name}
+																value={power.name}
+															>
+																<AccordionTrigger asChild>
+																	<div>
+																		<p>{power.name}</p>
+																		<Button
+																			className="hover:cursor-pointer"
+																			onClick={async () => {
+																				const newAbility = await addAbility(
+																					characterSheetIdRef.current,
+																					{
+																						name: power.name,
+																						description: power.description,
+																					},
+																				)
+																				setCharacterSheetDataObject({
+																					...characterSheetDataObject,
+																					abilities: [
+																						...characterSheetDataObject.abilities,
+																						{
+																							id: newAbility,
+																							name: power.name,
+																							description: power.description,
+																						},
+																					],
+																				})
+																			}}
+																		>
+																			<Plus />
+																		</Button>
+																	</div>
+																</AccordionTrigger>
+																<AccordionContent asChild>
+																	{power.description}
+																</AccordionContent>
+															</AccordionItem>
+														))}
+												</Accordion>
+											</TabsContent>
+										</Tabs>
+									</DialogContent>
+								</DialogOverlay>
+							</Dialog>
+							<div>
+								{characterSheetDataObject.abilities.map((ability) => (
+									<Accordion
+										className="rounded-md bg-white/5 px-2"
+										collapsible
+										key={ability.id}
+										type="single"
+									>
+										<AccordionItem value="item">
+											<AccordionTrigger>{ability.name}</AccordionTrigger>
+											<AccordionContent asChild>
+												<div>
+													{ability.description}
+													<div className="flex justify-between">
+														<Button
+															className="text-green-500 text-xs hover:cursor-pointer"
+															variant="link"
+														>
+															Edit
+														</Button>
+														<Button
+															className="text-red-500 text-xs hover:cursor-pointer"
+															onClick={() => {
+																removeAbility(characterSheetIdRef.current, {
+																	abilityId: ability.id,
+																})
+																setCharacterSheetDataObject({
+																	...characterSheetDataObject,
+																	abilities:
+																		characterSheetDataObject.abilities.filter(
+																			(abl) => ability.id !== abl.id,
+																		),
+																})
+															}}
+															variant="link"
+														>
+															Delete
+														</Button>
+													</div>
+												</div>
+											</AccordionContent>
+										</AccordionItem>
+									</Accordion>
+								))}
+							</div>
+						</TabsContent>
+					</Tabs>
 				</div>
 			</div>
 		</div>

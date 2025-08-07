@@ -1,14 +1,16 @@
-"use client"
-
+import { headers } from "next/headers"
 import Link from "next/link"
+import NavbarSignout from "@/components/navbar-signout"
 import {
 	NavigationMenu,
 	NavigationMenuItem,
 	NavigationMenuLink,
 	NavigationMenuList,
 } from "@/components/ui/navigation-menu"
+import { getSession } from "@/dal/dal"
 
-export function Navbar() {
+export async function Navbar() {
+	const session = await getSession(headers())
 	return (
 		<NavigationMenu>
 			<NavigationMenuList>
@@ -32,6 +34,15 @@ export function Navbar() {
 						<Link href="/homebrew">Homebrew</Link>
 					</NavigationMenuLink>
 				</NavigationMenuItem>
+				{session ? (
+					<NavbarSignout />
+				) : (
+					<NavigationMenuItem>
+						<NavigationMenuLink asChild>
+							<Link href="/login">Login</Link>
+						</NavigationMenuLink>
+					</NavigationMenuItem>
+				)}
 			</NavigationMenuList>
 		</NavigationMenu>
 	)

@@ -234,7 +234,7 @@ export const backgrounds = {
 			"Você fez parte de uma força de segurança pública, civil ou militar. Em alguma patrulha ou chamado se deparou com um caso paranormal e sobreviveu para contar a história.",
 		skills: ["percepcao", "pontaria"],
 		power: {
-			name: "Patrulha",
+			name: "Patrol",
 			description: "Você recebe +2 em Defesa.",
 		},
 	},

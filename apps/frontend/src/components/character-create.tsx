@@ -34,9 +34,13 @@ export default function CharacterCreateComponent() {
 		{ name: "Vigor", key: "vig" },
 		{ name: "Presence", key: "pre" },
 	]
-	const [attributeValues, setAttributeValues] = useState<
-		Record<string, string | number>
-	>({
+	const [attributeValues, setAttributeValues] = useState<{
+		str: string | number
+		agi: string | number
+		int: string | number
+		vig: string | number
+		pre: string | number
+	}>({
 		str: 1,
 		agi: 1,
 		int: 1,
@@ -125,12 +129,13 @@ export default function CharacterCreateComponent() {
 								<Input
 									className="w-full"
 									inputMode="numeric"
-									onBlur={(e) =>
+									onBlur={(e) => {
 										setAttributeValues((prevState) => ({
 											...prevState,
 											[attribute.key]: Math.max(0, Number(e.target.value)),
 										}))
-									}
+										e.target.value = e.target.value.replace(/^0+(?=\d)/, "")
+									}}
 									onChange={(e) =>
 										setAttributeValues((prevState) => ({
 											...prevState,

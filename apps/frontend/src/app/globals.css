@@ -46,6 +46,12 @@
   --sidebar-ring: oklch(0.556 0 0);
 }
 
+@utility scrollbar-hidden {
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
 input[type="number"]::-webkit-inner-spin-button,
 select {
   appearance: none;
