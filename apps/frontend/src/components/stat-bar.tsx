@@ -1,4 +1,4 @@
-import type { StatsType } from "@/app/character/[id]/page"
+import type { statsType } from "@/app/character/[id]/page"
 import {
 	ChevronLeft,
 	ChevronRight,
@@ -11,8 +11,9 @@ interface StatBarProps {
 	label: string
 	barColor: string
 	stat: "Hp" | "San" | "Pe" | "Pd"
-	statsState: StatsType
-	setStatsState: React.Dispatch<React.SetStateAction<StatsType | null>>
+	statsState: statsType
+	setStatsState: React.Dispatch<React.SetStateAction<statsType>>
+	characterId: string
 }
 
 export function StatBar({
@@ -21,6 +22,7 @@ export function StatBar({
 	stat,
 	statsState,
 	setStatsState,
+	characterId,
 }: StatBarProps) {
 	function updateBarValueOnBlur(
 		statToChange: string,
@@ -31,9 +33,9 @@ export function StatBar({
 		const finalvalue = Math.max(0, value)
 		setStatsState({
 			...statsState,
-			[statKey]: finalvalue.toString(),
+			[statKey]: finalvalue,
 		})
-		saveCharacterChanges(1, {
+		saveCharacterChanges(characterId, {
 			[statKey]: finalvalue,
 		})
 	}
@@ -50,13 +52,13 @@ export function StatBar({
 	}
 
 	function updateBarValueClick(statToChange: string, value: number) {
-		const statKey = `current${statToChange}` as keyof StatsType
+		const statKey = `current${statToChange}` as keyof statsType
 		const finalValue = Math.max(0, Number(statsState[statKey]) + value)
 		setStatsState({
 			...statsState,
-			[statKey]: finalValue.toString(),
+			[statKey]: finalValue,
 		})
-		saveCharacterChanges(1, {
+		saveCharacterChanges(characterId, {
 			[statKey]: finalValue,
 		})
 	}

@@ -28,14 +28,17 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
 	addAbility,
+	addItem,
 	getCharacterSheet,
 	removeAbility,
+	removeItem,
 	saveCharacterChanges,
 	saveCharacterSkills,
 } from "@/dal/dal"
 import { paranormalPowers } from "@/data/abilities"
 import { backgrounds } from "@/data/backgrounds"
 import { classes, type classesObjectTypes } from "@/data/classes"
+import { ammo, armor, cursedItems, generalItems, weapons } from "@/data/items"
 import { skills } from "@/data/skills"
 import { rollDice, rollDiceNotation } from "@/utils/dice"
 
@@ -58,15 +61,15 @@ interface skillObjectTypes {
 	}
 }
 
-export interface StatsType {
-	currentHp: string
-	maxHp: string
-	currentSan: string
-	maxSan: string
-	currentPe: string
-	maxPe: string
-	currentPd: string
-	maxPd: string
+export interface statsType {
+	currentHp: string | number
+	maxHp: string | number
+	currentSan: string | number
+	maxSan: string | number
+	currentPe: string | number
+	maxPe: string | number
+	currentPd: string | number
+	maxPd: string | number
 }
 
 const trainingColorMap: Record<string, string> = {
@@ -80,23 +83,68 @@ export default function CharacterSheet() {
 	const characterSheetIdRef = useRef<string>(useParams<{ id: string }>().id)
 	const [characterSheetDataObject, setCharacterSheetDataObject] =
 		useState<CharacterSheetResponseType | null>(null)
-	const [globalStats, setGlobalStats] = useState<globalStatTypes | null>(null)
+	const [globalStats, setGlobalStats] = useState<globalStatTypes>({
+		str: 0,
+		agi: 0,
+		int: 0,
+		vig: 0,
+		pre: 0,
+		nex: 0,
+		class: "",
+		background: "",
+	})
 	const [defensiveStats, setDefensiveStats] = useState<{
 		equipDef: string | number
 		otherDef: string | number
 		dodge: string | number
 		blockDr: string | number
-	} | null>(null)
-	const [skillAttributes, setSkillAttributes] =
-		useState<skillObjectTypes | null>(
-			Object.fromEntries(
-				Object.entries(skills).map(([key, value]) => [
-					key,
-					{ attribute: value.attribute, trainingBonus: 0, otherBonus: 0 },
-				]),
-			),
-		)
-	const [stats, setStats] = useState<StatsType | null>(null)
+	}>({ equipDef: 0, otherDef: 0, dodge: 0, blockDr: 0 })
+	const [skillAttributes, setSkillAttributes] = useState<skillObjectTypes>(
+		Object.fromEntries(
+			Object.entries(skills).map(([key, value]) => [
+				key,
+				{ attribute: value.attribute, trainingBonus: 0, otherBonus: 0 },
+			]),
+		),
+	)
+	const [stats, setStats] = useState<{
+		currentHp: string | number
+		maxHp: string | number
+		currentSan: string | number
+		maxSan: string | number
+		currentPe: string | number
+		maxPe: string | number
+		currentPd: string | number
+		maxPd: string | number
+	}>({
+		currentHp: 0,
+		maxHp: 0,
+		currentSan: 0,
+		maxSan: 0,
+		currentPe: 0,
+		maxPe: 0,
+		currentPd: 0,
+		maxPd: 0,
+	})
+	const [inventoryStats, setInventoryStats] = useState<{
+		prestige: number
+		rank: string
+		category1Limit: number
+		category2Limit: number
+		category3Limit: number
+		category4Limit: number
+		creditLimit: string
+		maxWeight: number
+	}>({
+		prestige: 0,
+		rank: "",
+		category1Limit: 0,
+		category2Limit: 0,
+		category3Limit: 0,
+		category4Limit: 0,
+		creditLimit: "",
+		maxWeight: 0,
+	})
 
 	useEffect(() => {
 		async function fetchData() {
@@ -132,14 +180,24 @@ export default function CharacterSheet() {
 				),
 			}))
 			setStats({
-				currentHp: data.currentHp.toString(),
-				maxHp: data.maxHp.toString(),
-				currentSan: data.currentSan.toString(),
-				maxSan: data.maxSan.toString(),
-				currentPe: data.currentPe.toString(),
-				maxPe: data.maxPe.toString(),
-				currentPd: data.currentPd.toString(),
-				maxPd: data.maxPd.toString(),
+				currentHp: data.currentHp,
+				maxHp: data.maxHp,
+				currentSan: data.currentSan,
+				maxSan: data.maxSan,
+				currentPe: data.currentPe,
+				maxPe: data.maxPe,
+				currentPd: data.currentPd,
+				maxPd: data.maxPd,
+			})
+			setInventoryStats({
+				prestige: data.prestige,
+				rank: data.rank,
+				category1Limit: data.category1Limit,
+				category2Limit: data.category2Limit,
+				category3Limit: data.category3Limit,
+				category4Limit: data.category4Limit,
+				creditLimit: data.creditLimit,
+				maxWeight: data.maxWeight,
 			})
 		}
 		fetchData()
@@ -185,12 +243,18 @@ export default function CharacterSheet() {
 					<button
 						className="hover:cursor-pointer"
 						onClick={() => {
+							const newStrValue = Math.max(0, globalStats.str - 1)
 							setGlobalStats({
 								...globalStats,
-								str: globalStats.str - 1,
+								str: newStrValue,
+							})
+							setInventoryStats({
+								...inventoryStats,
+								maxWeight: newStrValue === 0 ? 2 : newStrValue * 5,
 							})
 							saveCharacterChanges(characterSheetIdRef.current, {
-								str: globalStats.str - 1,
+								str: newStrValue,
+								maxItemWeight: newStrValue === 0 ? 2 : newStrValue * 5,
 							})
 						}}
 						type="button"
@@ -215,12 +279,18 @@ export default function CharacterSheet() {
 					<button
 						className="hover:cursor-pointer"
 						onClick={() => {
+							const newStrValue = globalStats.str + 1
 							setGlobalStats({
 								...globalStats,
-								str: globalStats.str + 1,
+								str: newStrValue,
+							})
+							setInventoryStats({
+								...inventoryStats,
+								maxWeight: newStrValue * 5,
 							})
 							saveCharacterChanges(characterSheetIdRef.current, {
-								str: globalStats.str + 1,
+								str: newStrValue,
+								maxWeight: newStrValue * 5,
 							})
 						}}
 						type="button"
@@ -237,12 +307,13 @@ export default function CharacterSheet() {
 						<button
 							className="hover:cursor-pointer"
 							onClick={() => {
+								const newAgiValue = Math.max(0, globalStats.agi - 1)
 								setGlobalStats({
 									...globalStats,
-									agi: globalStats.agi - 1,
+									agi: newAgiValue,
 								})
 								saveCharacterChanges(characterSheetIdRef.current, {
-									agi: globalStats.agi - 1,
+									agi: newAgiValue,
 								})
 							}}
 							type="button"
@@ -290,12 +361,13 @@ export default function CharacterSheet() {
 						<button
 							className="hover:cursor-pointer"
 							onClick={() => {
+								const newIntValue = Math.max(0, globalStats.int - 1)
 								setGlobalStats({
 									...globalStats,
-									int: globalStats.int - 1,
+									int: newIntValue,
 								})
 								saveCharacterChanges(characterSheetIdRef.current, {
-									int: globalStats.int - 1,
+									int: newIntValue,
 								})
 							}}
 							type="button"
@@ -345,13 +417,14 @@ export default function CharacterSheet() {
 						<button
 							className="hover:cursor-pointer"
 							onClick={() => {
+								const newVigValue = Math.max(0, globalStats.vig - 1)
 								setGlobalStats({
 									...globalStats,
-									vig: globalStats.vig - 1,
+									vig: newVigValue,
 								})
 
 								saveCharacterChanges(characterSheetIdRef.current, {
-									vig: globalStats.vig - 1,
+									vig: newVigValue,
 								})
 							}}
 							type="button"
@@ -399,12 +472,13 @@ export default function CharacterSheet() {
 						<button
 							className="hover:cursor-pointer"
 							onClick={() => {
+								const newPreValue = Math.max(0, globalStats.pre - 1)
 								setGlobalStats({
 									...globalStats,
-									pre: globalStats.pre - 1,
+									pre: newPreValue,
 								})
 								saveCharacterChanges(characterSheetIdRef.current, {
-									pre: globalStats.pre - 1,
+									pre: newPreValue,
 								})
 							}}
 							type="button"
@@ -625,6 +699,7 @@ export default function CharacterSheet() {
 					<div className="statBars flex flex-col gap-3">
 						<StatBar
 							barColor="bg-red-500"
+							characterId={characterSheetIdRef.current}
 							label="HEALTH"
 							setStatsState={setStats}
 							stat="Hp"
@@ -632,6 +707,7 @@ export default function CharacterSheet() {
 						/>
 						<StatBar
 							barColor="bg-blue-500"
+							characterId={characterSheetIdRef.current}
 							label="SANITY"
 							setStatsState={setStats}
 							stat="San"
@@ -639,6 +715,7 @@ export default function CharacterSheet() {
 						/>
 						<StatBar
 							barColor="bg-yellow-600"
+							characterId={characterSheetIdRef.current}
 							label="EFFORT"
 							setStatsState={setStats}
 							stat="Pe"
@@ -646,6 +723,7 @@ export default function CharacterSheet() {
 						/>
 						<StatBar
 							barColor="bg-sky-400"
+							characterId={characterSheetIdRef.current}
 							label="DETERMINATION"
 							setStatsState={setStats}
 							stat="Pd"
@@ -785,8 +863,8 @@ export default function CharacterSheet() {
 										data-skill-id={skillKey}
 										key={skill.name}
 									>
-										<td className="p-[1px] align-middle">
-											<div className="flex align-middle">
+										<td className="p-[1px]">
+											<div className="flex items-center">
 												<RollSkillButton
 													hasIcon
 													onClick={() =>
@@ -804,12 +882,12 @@ export default function CharacterSheet() {
 												/>
 											</div>
 										</td>
-										<td className="p-[1px] align-middle leading-normal">
+										<td className="p-[1px] leading-normal">
 											{skill.name}
 											{skill.loadPenalty ? "+" : ""}
 											{skill.onlyTrained ? "*" : ""}
 										</td>
-										<td className="p-[1px] text-center align-middle">
+										<td className="p-[1px] text-center">
 											<select
 												className="text-center hover:cursor-pointer hover:text-purple-500"
 												onChange={(e) => {
@@ -844,10 +922,8 @@ export default function CharacterSheet() {
 												</option>
 											</select>
 										</td>
-										<td className="p-[1px] text-center align-middle">
-											{skillBonus}
-										</td>
-										<td className="text-center align-middle">
+										<td className="p-[1px] text-center ">{skillBonus}</td>
+										<td className="text-center ">
 											<select
 												className="w-9 border-white border-b-1 text-center hover:cursor-pointer hover:text-purple-500"
 												onChange={(e) => {
@@ -906,7 +982,7 @@ export default function CharacterSheet() {
 											</select>
 										</td>
 										<td className="w-13 text-center">
-											<div className="flex items-center justify-center align-middle">
+											<div className="flex items-center justify-center">
 												<input
 													className="w-9 border-white border-b-1 text-center"
 													inputMode="numeric"
@@ -1335,6 +1411,351 @@ export default function CharacterSheet() {
 																		characterSheetDataObject.abilities.filter(
 																			(abl) => ability.id !== abl.id,
 																		),
+																})
+															}}
+															variant="link"
+														>
+															Delete
+														</Button>
+													</div>
+												</div>
+											</AccordionContent>
+										</AccordionItem>
+									</Accordion>
+								))}
+							</div>
+						</TabsContent>
+						<TabsContent className="flex flex-col gap-3" value="inventory">
+							<Dialog>
+								<DialogTrigger asChild>
+									<Button>Add Item</Button>
+								</DialogTrigger>
+								<DialogOverlay>
+									<DialogContent
+										aria-describedby={undefined}
+										className="scrollbar-hidden max-h-[500px] min-w-240 overflow-y-auto"
+									>
+										<DialogHeader>
+											<DialogTitle>Add Item</DialogTitle>
+										</DialogHeader>
+										<Tabs>
+											<TabsList>
+												<TabsTrigger value="weapons">Weapons</TabsTrigger>
+												<TabsTrigger value="ammo">Ammo</TabsTrigger>
+												<TabsTrigger value="armor">Armor</TabsTrigger>
+												<TabsTrigger value="general">General</TabsTrigger>
+												<TabsTrigger value="cursed">Cursed Items</TabsTrigger>
+											</TabsList>
+											<TabsContent value="weapons">
+												<Accordion
+													className="rounded-md bg-white/5 px-2"
+													type="multiple"
+												>
+													{weapons
+														.sort((a, b) => a.name.localeCompare(b.name))
+														.map((weapon) => {
+															return (
+																<AccordionItem
+																	key={weapon.name}
+																	value={weapon.name}
+																>
+																	<AccordionTrigger asChild>
+																		<div>
+																			<p>{weapon.name}</p>
+																			<Button
+																				className="hover:cursor-pointer"
+																				onClick={async () => {
+																					const newItem = await addItem(
+																						characterSheetIdRef.current,
+																						{
+																							...weapon,
+																							isActive: false,
+																						},
+																					)
+																					setCharacterSheetDataObject({
+																						...characterSheetDataObject,
+																						items: [
+																							...characterSheetDataObject.items,
+																							{
+																								id: newItem,
+																								...weapon,
+																								isActive: false,
+																							},
+																						],
+																					})
+																				}}
+																			>
+																				<Plus />
+																			</Button>
+																		</div>
+																	</AccordionTrigger>
+																	<AccordionContent asChild>
+																		{weapon.description}
+																	</AccordionContent>
+																</AccordionItem>
+															)
+														})}
+												</Accordion>
+											</TabsContent>
+											<TabsContent value="ammo">
+												<Accordion
+													className="rounded-md bg-white/5 px-2"
+													type="multiple"
+												>
+													{ammo
+														.sort((a, b) => a.name.localeCompare(b.name))
+														.map((ammoItem) => {
+															return (
+																<AccordionItem
+																	key={ammoItem.name}
+																	value={ammoItem.name}
+																>
+																	<AccordionTrigger asChild>
+																		<div>
+																			<p>{ammoItem.name}</p>
+																			<Button
+																				className="hover:cursor-pointer"
+																				onClick={async () => {
+																					const newItem = await addItem(
+																						characterSheetIdRef.current,
+																						{
+																							...ammoItem,
+																						},
+																					)
+																					setCharacterSheetDataObject({
+																						...characterSheetDataObject,
+																						items: [
+																							...characterSheetDataObject.items,
+																							{
+																								id: newItem,
+																								...ammoItem,
+																							},
+																						],
+																					})
+																				}}
+																			>
+																				<Plus />
+																			</Button>
+																		</div>
+																	</AccordionTrigger>
+																	<AccordionContent asChild>
+																		{ammoItem.description}
+																	</AccordionContent>
+																</AccordionItem>
+															)
+														})}
+												</Accordion>
+											</TabsContent>
+											<TabsContent value="armor">
+												<Accordion
+													className="rounded-md bg-white/5 px-2"
+													type="multiple"
+												>
+													{armor
+														.sort((a, b) => a.name.localeCompare(b.name))
+														.map((armorItem) => {
+															return (
+																<AccordionItem
+																	key={armorItem.name}
+																	value={armorItem.name}
+																>
+																	<AccordionTrigger asChild>
+																		<div>
+																			<p>{armorItem.name}</p>
+																			<Button
+																				className="hover:cursor-pointer"
+																				onClick={async () => {
+																					const newItem = await addItem(
+																						characterSheetIdRef.current,
+																						{
+																							...armorItem,
+																							isActive: false,
+																						},
+																					)
+																					setCharacterSheetDataObject({
+																						...characterSheetDataObject,
+																						items: [
+																							...characterSheetDataObject.items,
+																							{
+																								id: newItem,
+																								...armorItem,
+																								isActive: false,
+																							},
+																						],
+																					})
+																				}}
+																			>
+																				<Plus />
+																			</Button>
+																		</div>
+																	</AccordionTrigger>
+																	<AccordionContent asChild>
+																		{armorItem.description}
+																	</AccordionContent>
+																</AccordionItem>
+															)
+														})}
+												</Accordion>
+											</TabsContent>
+											<TabsContent value="general">
+												<Accordion
+													className="rounded-md bg-white/5 px-2"
+													type="multiple"
+												>
+													{generalItems
+														.sort((a, b) => a.name.localeCompare(b.name))
+														.map((generalItem) => {
+															return (
+																<AccordionItem
+																	key={generalItem.name}
+																	value={generalItem.name}
+																>
+																	<AccordionTrigger asChild>
+																		<div>
+																			<p>{generalItem.name}</p>
+																			<Button
+																				className="hover:cursor-pointer"
+																				onClick={async () => {
+																					const newItem = await addItem(
+																						characterSheetIdRef.current,
+																						{
+																							...generalItem,
+																						},
+																					)
+																					setCharacterSheetDataObject({
+																						...characterSheetDataObject,
+																						items: [
+																							...characterSheetDataObject.items,
+																							{
+																								id: newItem,
+																								...generalItem,
+																							},
+																						],
+																					})
+																				}}
+																			>
+																				<Plus />
+																			</Button>
+																		</div>
+																	</AccordionTrigger>
+																	<AccordionContent asChild>
+																		{generalItem.description}
+																	</AccordionContent>
+																</AccordionItem>
+															)
+														})}
+												</Accordion>
+											</TabsContent>
+											<TabsContent value="cursed">
+												<Accordion
+													className="rounded-md bg-white/5 px-2"
+													type="multiple"
+												>
+													{cursedItems
+														.sort((a, b) => a.name.localeCompare(b.name))
+														.map((cursedItem) => {
+															return (
+																<AccordionItem
+																	key={cursedItem.name}
+																	value={cursedItem.name}
+																>
+																	<AccordionTrigger asChild>
+																		<div>
+																			<p>{cursedItem.name}</p>
+																			<Button
+																				className="hover:cursor-pointer"
+																				onClick={async () => {
+																					const newItem = await addItem(
+																						characterSheetIdRef.current,
+																						{
+																							...cursedItem,
+																						},
+																					)
+																					setCharacterSheetDataObject({
+																						...characterSheetDataObject,
+																						items: [
+																							...characterSheetDataObject.items,
+																							{
+																								id: newItem,
+																								...cursedItem,
+																							},
+																						],
+																					})
+																				}}
+																			>
+																				<Plus />
+																			</Button>
+																		</div>
+																	</AccordionTrigger>
+																	<AccordionContent asChild>
+																		{cursedItem.description}
+																	</AccordionContent>
+																</AccordionItem>
+															)
+														})}
+												</Accordion>
+											</TabsContent>
+										</Tabs>
+									</DialogContent>
+								</DialogOverlay>
+							</Dialog>
+							<div>
+								<div className="mb-1 flex justify-between">
+									<div>Prestige Points: {inventoryStats.prestige}</div>
+									<div>Rank: {inventoryStats.rank}</div>
+								</div>
+								<div className="mb-1 flex">
+									Item Limit: {inventoryStats.category1Limit}{" "}
+									{inventoryStats.category2Limit}{" "}
+									{inventoryStats.category3Limit}{" "}
+									{inventoryStats.category4Limit}{" "}
+								</div>
+								<div className="mb-1 flex">
+									In Inventory: {} {} {} {}{" "}
+								</div>
+								<div className="mb-1 flex justify-between">
+									<div>Credit Limit: {inventoryStats.creditLimit}</div>
+									<div>
+										Max Load:{" "}
+										{characterSheetDataObject.items.reduce(
+											(acc, obj) => acc + obj.weight,
+											0,
+										)}{" "}
+										/ {inventoryStats.maxWeight}{" "}
+									</div>
+								</div>
+							</div>
+							<div>
+								{characterSheetDataObject.items.map((item) => (
+									<Accordion
+										className="rounded-md bg-white/5 px-2"
+										collapsible
+										key={item.id}
+										type="single"
+									>
+										<AccordionItem value="item">
+											<AccordionTrigger>{item.name}</AccordionTrigger>
+											<AccordionContent asChild>
+												<div>
+													{item.description}
+													<div className="flex justify-between">
+														<Button
+															className="text-green-500 text-xs hover:cursor-pointer"
+															variant="link"
+														>
+															Edit
+														</Button>
+														<Button
+															className="text-red-500 text-xs hover:cursor-pointer"
+															onClick={() => {
+																removeItem(characterSheetIdRef.current, {
+																	itemId: item.id,
+																})
+																setCharacterSheetDataObject({
+																	...characterSheetDataObject,
+																	items: characterSheetDataObject.items.filter(
+																		(removedItem) => item.id !== removedItem.id,
+																	),
 																})
 															}}
 															variant="link"

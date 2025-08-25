@@ -3,6 +3,7 @@ import {
 	CharacterSheetPlainInputUpdate,
 } from "@api/generated/prismabox/CharacterSheet"
 import { CharacterSkillsPlainInputUpdate } from "@api/generated/prismabox/CharacterSkills"
+import { ItemsPlainInputCreate } from "@api/generated/prismabox/Items"
 import { prisma } from "@api/lib/prisma-client"
 import { skills } from "@frontend/data/skills"
 import { Elysia, type Static, t } from "elysia"
@@ -24,6 +25,11 @@ const characterSheetResponseTypeBox = t.Composite([
 	t.Object({
 		abilities: t.Array(
 			t.Object({ id: t.Number(), name: t.String(), description: t.String() }),
+		),
+	}),
+	t.Object({
+		items: t.Array(
+			t.Composite([t.Object({ id: t.Number() }), ItemsPlainInputCreate]),
 		),
 	}),
 ])
@@ -86,6 +92,19 @@ export const userRoutes = new Elysia({ prefix: "/user", tags: ["User"] })
 						armor: "",
 						resistances: "",
 						proficiencies: body.proficiencies,
+						prestige: 0,
+						rank: body.class === "survivor" ? "Survivor" : "Recruit",
+						category1Limit: body.class === "survivor" ? 1 : 2,
+						category2Limit: 0,
+						category3Limit: 0,
+						category4Limit: 0,
+						creditLimit: "Low",
+						currentWeight: 0,
+						maxWeight: body.str === 0 ? 2 : 5 * body.str,
+						ritualDc: 11 + body.pre,
+						isPrivate: true,
+						isPdOn: false,
+						isSepareteNexOn: false,
 						skills: {
 							create: await Promise.all(
 								Object.keys(skills).map(async (skillKey) => {
@@ -205,6 +224,11 @@ export const userRoutes = new Elysia({ prefix: "/user", tags: ["User"] })
 					abilities: {
 						select: { id: true, name: true, description: true },
 					},
+					items: {
+						omit: {
+							characterSheetId: true,
+						},
+					},
 				},
 			})
 
@@ -312,7 +336,42 @@ export const userRoutes = new Elysia({ prefix: "/user", tags: ["User"] })
 			body: t.Object({ abilityId: t.Number() }),
 		},
 	)
+	.post(
+		"/sheets/:id/items/add",
+		async ({ params: { id }, body, status }) => {
+			const newItem = await prisma.items.create({
+				data: {
+					characterSheetId: id,
+					...body,
+				},
+			})
+			return status(201, newItem.id)
+		},
+		{
+			params: t.Object({ id: t.Numeric() }),
+			body: ItemsPlainInputCreate,
+		},
+	)
+	.delete(
+		"/sheets/:id/items/delete",
+		async ({ params: { id }, body, status }) => {
+			await prisma.items.delete({
+				where: {
+					characterSheetId: id,
+					id: body.itemId,
+				},
+			})
+			return status(204, "No Content")
+		},
+		{
+			params: t.Object({ id: t.Numeric() }),
+			body: t.Object({ itemId: t.Number() }),
+			response: { 204: t.String() },
+		},
+	)
 
 export type CharacterSheetResponseType = Static<
 	typeof characterSheetResponseTypeBox
 >
+
+export type ItemsInputCreateType = Static<typeof ItemsPlainInputCreate>

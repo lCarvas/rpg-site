@@ -1,3 +1,4 @@
+import type { ItemsInputCreateType } from "@api/routes/users"
 import type { ReadonlyHeaders } from "next/dist/server/web/spec-extension/adapters/headers"
 import { api } from "@libs"
 import { redirect } from "next/navigation"
@@ -124,6 +125,27 @@ export async function removeAbility(
 	const { data, error } = await api.user
 		.sheets({ id: id })
 		.abilities.delete.delete(body)
+	if (error) {
+		throw error.status
+	}
+	return data
+}
+
+export async function addItem(id: string | number, body: ItemsInputCreateType) {
+	const { data, error } = await api.user.sheets({ id: id }).items.add.post(body)
+	if (error) {
+		throw error.status
+	}
+	return data
+}
+
+export async function removeItem(
+	id: string | number,
+	body: { itemId: number },
+) {
+	const { data, error } = await api.user
+		.sheets({ id: id })
+		.items.delete.delete(body)
 	if (error) {
 		throw error.status
 	}

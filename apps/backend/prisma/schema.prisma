@@ -33,38 +33,52 @@ model User {
 }
 
 model CharacterSheet {
-  id            Int               @id @default(autoincrement())
-  owner         User              @relation(fields: [userId], references: [id])
-  userId        String
-  createdAt     DateTime          @default(now())
-  str           Int
-  agi           Int
-  int           Int
-  vig           Int
-  pre           Int
-  class         String
-  background    String
-  nex           Int
-  level         Int
-  turnPe        Int
-  movement      Int
-  currentHp     Int
-  maxHp         Int
-  currentSan    Int
-  maxSan        Int
-  currentPe     Int
-  maxPe         Int
-  currentPd     Int
-  maxPd         Int
-  equipDef      Int
-  otherDef      Int
-  blockDr       Int
-  dodge         Int
-  armor         String
-  resistances   String
-  proficiencies String
-  skills        CharacterSkills[]
-  abilities     Abilities[]
+  id              Int               @id @default(autoincrement())
+  owner           User              @relation(fields: [userId], references: [id])
+  userId          String
+  createdAt       DateTime          @default(now())
+  str             Int
+  agi             Int
+  int             Int
+  vig             Int
+  pre             Int
+  class           String
+  background      String
+  nex             Int
+  level           Int
+  turnPe          Int
+  movement        Int
+  currentHp       Int
+  maxHp           Int
+  currentSan      Int
+  maxSan          Int
+  currentPe       Int
+  maxPe           Int
+  currentPd       Int
+  maxPd           Int
+  equipDef        Int
+  otherDef        Int
+  blockDr         Int
+  dodge           Int
+  armor           String
+  resistances     String
+  proficiencies   String
+  prestige        Int
+  rank            String
+  category1Limit  Int
+  category2Limit  Int
+  category3Limit  Int
+  category4Limit  Int
+  creditLimit     String
+  currentWeight   Int
+  maxWeight       Int
+  ritualDc        Int
+  isPrivate       Boolean
+  isPdOn          Boolean
+  isSepareteNexOn Boolean
+  skills          CharacterSkills[]
+  abilities       Abilities[]
+  items           Items[]
 }
 
 model Skills {
@@ -90,6 +104,30 @@ model Abilities {
   id               Int            @id @default(autoincrement())
   name             String
   description      String
+  character        CharacterSheet @relation(fields: [characterSheetId], references: [id], onDelete: Cascade)
+  characterSheetId Int
+}
+
+model Items {
+  id               Int            @id @default(autoincrement())
+  name             String
+  description      String
+  itemType         String
+  category         String
+  weight           Int
+  proficiency      String?
+  weaponType       String?
+  handling         String?
+  damage           String?
+  altDamage        String?
+  crit             Int?
+  critMultiplier   Int?
+  damageType       String?
+  range            String?
+  defense          Int?
+  generalType      String?
+  element          String?
+  isActive         Boolean?
   character        CharacterSheet @relation(fields: [characterSheetId], references: [id], onDelete: Cascade)
   characterSheetId Int
 }
