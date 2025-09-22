@@ -1,12 +1,12 @@
 import { cors } from "@elysiajs/cors"
-import { swagger } from "@elysiajs/swagger"
+import { openapi } from "@elysiajs/openapi"
 import { Elysia } from "elysia"
-import { betterAuth } from "./routes/better-auth"
+import { betterAuthPlugin } from "./routes/better-auth"
 import { userRoutes } from "./routes/users"
 
 export const app = new Elysia()
 	.use(
-		swagger({
+		openapi({
 			documentation: {
 				info: {
 					title: "RPG Site API",
@@ -24,7 +24,7 @@ export const app = new Elysia()
 			allowedHeaders: ["Content-Type", "Authorization"],
 		}),
 	)
-	.use(betterAuth)
+	.use(betterAuthPlugin)
 	.use(userRoutes)
 	.listen(3000)
 
@@ -34,5 +34,5 @@ console.log(
 	`🦊 Elysia is running at http://${app.server?.hostname}:${app.server?.port}`,
 )
 console.log(
-	`🦊 Documentation available at http://${app.server?.hostname}:${app.server?.port}/swagger`,
+	`🦊 Documentation available at http://${app.server?.hostname}:${app.server?.port}/openapi`,
 )

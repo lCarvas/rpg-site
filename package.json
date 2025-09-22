@@ -1,18 +1,15 @@
 {
 	"name": "rpg-site-monorepo",
-	"private": true,
-	"workspaces": [
-		"apps/*",
-		"packages/*"
-	],
 	"devDependencies": {
-		"@biomejs/biome": "2.1.2",
+		"@biomejs/biome": "2.2.4",
 		"@types/bun": "latest",
 		"turbo": "^2.5.5"
 	},
 	"peerDependencies": {
 		"typescript": "^5"
 	},
+	"packageManager": "bun@1.2.19",
+	"private": true,
 	"scripts": {
 		"check": "biome check --write .",
 		"dev": "turbo dev",
@@ -37,5 +34,8 @@
 		"prisma",
 		"sharp"
 	],
-	"packageManager": "bun@1.2.19"
+	"workspaces": [
+		"apps/*",
+		"packages/*"
+	]
 }

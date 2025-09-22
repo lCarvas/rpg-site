@@ -922,8 +922,8 @@ export default function CharacterSheet() {
 												</option>
 											</select>
 										</td>
-										<td className="p-[1px] text-center ">{skillBonus}</td>
-										<td className="text-center ">
+										<td className="p-[1px] text-center">{skillBonus}</td>
+										<td className="text-center">
 											<select
 												className="w-9 border-white border-b-1 text-center hover:cursor-pointer hover:text-purple-500"
 												onChange={(e) => {
