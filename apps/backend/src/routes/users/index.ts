@@ -7,6 +7,7 @@ import { ItemsPlainInputCreate } from "@api/generated/prismabox/Items"
 import { prisma } from "@api/lib/prisma-client"
 import { skills } from "@frontend/data/skills"
 import { Elysia, type Static, t } from "elysia"
+import { betterAuthPlugin } from "../better-auth"
 
 const characterSheetResponseTypeBox = t.Composite([
 	CharacterSheetPlain,
@@ -35,6 +36,8 @@ const characterSheetResponseTypeBox = t.Composite([
 ])
 
 export const userRoutes = new Elysia({ prefix: "/user", tags: ["User"] })
+	.use(betterAuthPlugin)
+	.guard({ auth: true })
 	.get(
 		"/:id/sheets",
 		async ({ params: { id: userId } }) => {
